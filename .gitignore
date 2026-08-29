@@ -1,0 +1,4 @@
+.DS_Store
+.mintlify/
+node_modules/
+*.log

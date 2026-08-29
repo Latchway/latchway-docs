@@ -1,0 +1,59 @@
+---
+title: "Deployment"
+description: "Deploy the single Latchway image with PostgreSQL and production secret custody."
+---
+
+Latchway ships one non-root OCI image for API, worker, migrations, diagnostics,
+CLI commands, and the embedded administration console. PostgreSQL 15 or newer
+is the only required external service.
+
+<Warning>
+  No stable version 1 image has been published. Treat source-built images as
+  evaluation candidates until release promotion and provenance checks pass.
+</Warning>
+
+## Supported templates
+
+- Docker Compose with an explicit migration service
+- Google Cloud Run with private Cloud SQL, Secret Manager, and a migration job
+- AWS ECS/Fargate with private RDS, Secrets Manager, and HTTPS ALB
+- Fly Machines with attached PostgreSQL and release-command migrations
+- Cloudflare Worker streaming shim around the same OCI container application
+
+The canonical templates live in the
+[core repository](https://github.com/Latchway/latchway/tree/main/deploy).
+
+## Required runtime values
+
+| Value | Purpose |
+| --- | --- |
+| `LATCHWAY_DATABASE_URL` | PostgreSQL connection string |
+| `LATCHWAY_MASTER_KEY` | Independently generated 32-byte root for encrypted secrets and signing material |
+| `LATCHWAY_PUBLIC_ORIGIN` | Exact external HTTPS origin used by clients and DPoP |
+| `LATCHWAY_ADMIN_BOOTSTRAP_TOKEN` | Temporary first-owner credential; remove after bootstrap |
+
+Keep secrets in the deployment platform's secret manager. Do not place them in
+container arguments, Terraform state output, CI logs, or client applications.
+
+## Process roles
+
+Start with the combined `all` role. At higher scale, run `serve --role api` and
+`serve --role worker` separately. Configuration state, replay uniqueness,
+quota reservation, job ownership, key rotation, and recovery coordination are
+PostgreSQL-backed.
+
+## Safe rollout
+
+1. Resolve the image by immutable digest and verify its signature, provenance,
+   and SPDX attestation.
+2. Back up PostgreSQL and prove a restore in isolation.
+3. Run `migrate up`, then require `migrate status` to report current equals
+   available.
+4. Require `/healthz` and `/readyz`; readiness includes required worker
+   heartbeat state.
+5. Keep the platform request timeout longer than the maximum supported stream.
+6. Give `SIGTERM` draining at least the configured 30-second default.
+7. Never enable response buffering for server-sent events.
+
+Use the [production-readiness checklist](/operations/production-readiness)
+before accepting traffic.

@@ -1,0 +1,100 @@
+---
+title: "Mobile-first quickstart"
+description: "Run a local Latchway gateway and prepare it for React Native, iOS, or Android."
+---
+
+This exercise proves the local software path using debug attestation. It does
+not prove production App Attest, Play Integrity, a live provider, or release
+compatibility.
+
+## Prerequisites
+
+- Docker with Compose
+- Git
+- `curl` and OpenSSL
+- a checkout of the
+  [core repository](https://github.com/Latchway/latchway)
+
+## Start the gateway
+
+From the core repository:
+
+```bash
+cp .env.example .env
+printf 'LATCHWAY_MASTER_KEY=%s\n' "$(openssl rand -base64 32)" >> .env
+docker compose up -d --build
+curl --fail http://127.0.0.1:8080/healthz
+curl --fail http://127.0.0.1:8080/readyz
+```
+
+Generate the master key only once. Keep the untracked `.env` with the database
+volume. Losing or changing the key makes stored provider credentials and
+gateway signing keys intentionally unusable.
+
+<Warning>
+  The example bootstrap token and loopback HTTP origin are for local
+  development only. Production deployments require independent secret custody
+  and the exact configured HTTPS origin.
+</Warning>
+
+## Bootstrap the control plane
+
+Open `http://127.0.0.1:8080` and use the bootstrap token from `.env` to create
+the first owner. Latchway permanently closes bootstrap after the first owner
+exists.
+
+Complete the setup wizard in order:
+
+1. Create an organization, application, and environment.
+2. Select the application's existing identity provider.
+3. Select `debug` attestation for this local exercise.
+4. Add a write-only upstream secret.
+5. Configure the upstream, physical model, pricing, feature, route, and limit
+   plan.
+6. Validate, plan, and activate the immutable configuration revision.
+7. Run the local self-test and copy the generated SDK values.
+
+Use the returned `app_...` application resource ID in every SDK. It is not the
+display name, bundle ID, Android package name, or a user-chosen slug.
+
+## Connect React Native first
+
+```typescript
+import { createLatchwayClient } from "@latchway/react-native";
+
+const latchway = createLatchwayClient({
+  baseURL: "http://127.0.0.1:8080",
+  applicationID: "app_...",
+  environment: "development",
+  getIdentityToken: async () => applicationIdentity.currentToken(),
+  android: {
+    playIntegrityCloudProjectNumber: applicationConfiguration.googleCloudProjectNumber,
+  },
+});
+
+const response = await latchway.fetch("/v1/responses", {
+  method: "POST",
+  latchwayFeature: "assistant",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({
+    model: "client-placeholder",
+    input: "Hello from React Native",
+    max_output_tokens: 64,
+  }),
+});
+```
+
+The server replaces the model and injects the provider credential. The app
+must never contain that credential. While packages remain unpublished, run
+the example from the matching SDK source checkout rather than resolving a
+registry package.
+
+## Confirm enforcement
+
+Use the console or CLI to inspect pseudonymous users, installations, requests,
+and usage. The request view should show selected routes, upstream attempts,
+models, timing, metered usage, and cost provenance without prompt bodies,
+identity subjects, proofs, or credentials.
+
+Next, configure the [React Native SDK](/mobile/react-native) or a native SDK,
+then follow the [production-readiness checklist](/operations/production-readiness).

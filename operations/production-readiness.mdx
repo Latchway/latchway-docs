@@ -1,0 +1,56 @@
+---
+title: "Production readiness"
+description: "Evidence and operational checks required before a Latchway deployment accepts traffic."
+---
+
+A passing local build is necessary but not sufficient. Production readiness is
+attached to an exact immutable core image, configuration, and SDK source set.
+
+## Security and supply chain
+
+- Verify the OCI index and platform digest.
+- Verify vulnerability scan policy, SPDX SBOM, signature, and provenance.
+- Store the master key, provider secrets, signing material, and administrator
+  credentials in independent secret custody.
+- Confirm logs, traces, metrics, and evidence artifacts contain no credentials,
+  raw identity subjects, prompt bodies, or attestation proofs.
+
+## Data and operations
+
+- Restore the latest backup into an isolated database and run diagnostics.
+- Prove the upgrade from the prior release candidate using forward-only
+  migrations.
+- Exercise key rotation, provider-secret rotation, scheduled self-tests, quota
+  recovery, and stuck-job reconciliation.
+- Test multi-replica contention, worker loss, database interruption, upstream
+  failure, graceful shutdown, and replacement readiness.
+
+## Application trust
+
+- Run Apple App Attest from the exact signed iOS application on a supported
+  physical device with the production entitlement.
+- Run Play Integrity from the exact signed Android application installed from
+  the configured Google Play track.
+- Pin bundle or package identifiers, signing identities, project numbers,
+  public gateway origin, application resource IDs, and environment names.
+- Confirm simulator, emulator, debug evidence, and sideloaded builds cannot
+  satisfy production policy.
+
+## Provider and protocol behavior
+
+- Execute bounded live non-streaming and streaming requests.
+- Cover every enabled protocol and configured production upstream.
+- Verify trusted input preflight, input and total quotas, concurrency, pricing,
+  usage settlement, sticky or weighted routing, fallback, and retry boundaries.
+- Confirm no retry or fallback occurs after response commitment.
+
+## Release and compatibility
+
+- Run cross-repository source and artifact conformance against exact commits.
+- Preserve protected workflow receipts for physical devices, cloud platforms,
+  load, failure, resilience, and live providers.
+- Promote tags and packages only through the release workflows.
+- Install published packages and pull the public image in clean consumers after
+  publication, then verify checksums and provenance again.
+
+See [Release status](/release-status) for the current claim boundary.

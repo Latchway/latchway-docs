@@ -1,0 +1,63 @@
+---
+title: "Native Android"
+description: "Use the Kotlin SDK, Android Keystore, OkHttp, and Play Integrity."
+---
+
+The Android SDK provides an Android Keystore P-256 installation key, encrypted
+session state, RFC 9449 DPoP, OkHttp integration, and Google Play Integrity
+attestation. Native libraries support Android API 23 or newer.
+
+The intended version 1 artifacts have not been published to Maven Central.
+Use the samples and conformance tools in the
+[Android source repository](https://github.com/Latchway/latchway-android)
+until release promotion completes.
+
+After publication, align modules with the Latchway BOM:
+
+```kotlin
+dependencies {
+    implementation(platform("dev.latchway:latchway-bom:1.0.0"))
+    implementation("dev.latchway:latchway-okhttp")
+    implementation("dev.latchway:latchway-play-integrity")
+    implementation("dev.latchway:latchway-firebase-auth") // optional
+}
+```
+
+## Create a client
+
+```kotlin
+val latchway = LatchwayClient(
+    configuration = LatchwayConfiguration(
+        baseUrl = "https://gateway.example.com/".toHttpUrl(),
+        applicationId = "app_01J00000000000000000000000",
+        environment = "production",
+        defaultFeature = "habit-assistant",
+    ),
+    identityTokenProvider = FirebaseIdentityTokenProvider(),
+    attestationProvider = PlayIntegrityAttestationProvider(
+        context = applicationContext,
+        cloudProjectNumber = cloudProjectNumber,
+    ),
+    context = applicationContext,
+)
+
+val http = OkHttpClient.Builder()
+    .addInterceptor(latchway.interceptor())
+    .addNetworkInterceptor(latchway.originGuard())
+    .authenticator(latchway.authenticator())
+    .build()
+```
+
+Install both `interceptor()` and `originGuard()`. The network guard blocks DPoP
+and Latchway headers before OkHttp can follow a redirect to another origin and
+catches credentials added later by application interceptors or cookie jars.
+
+## Production Play Integrity
+
+The SDK sends the server-provided canonical challenge binding directly as Play
+Integrity `requestHash`. The server validates project, request, application,
+licensing, and device verdicts.
+
+Real success requires the exact signed application installed through the
+configured Google Play track. An emulator, fixture, or sideloaded APK is not
+valid production evidence.

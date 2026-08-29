@@ -1,0 +1,59 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Latchway",
+  "description": "Self-hosted, attested access to AI infrastructure for mobile and web applications.",
+  "colors": {
+    "primary": "#3157D5",
+    "light": "#5F7EE7",
+    "dark": "#5F7EE7"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get started",
+        "pages": ["index", "quickstart", "release-status"]
+      },
+      {
+        "group": "Mobile SDKs",
+        "pages": ["mobile/react-native", "mobile/ios", "mobile/android"]
+      },
+      {
+        "group": "Core concepts",
+        "pages": [
+          "concepts/security-boundary",
+          "concepts/routing-and-quotas"
+        ]
+      },
+      {
+        "group": "Operations",
+        "pages": [
+          "operations/deployment",
+          "operations/production-readiness"
+        ]
+      },
+      {
+        "group": "Help",
+        "pages": ["troubleshooting"]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "type": "github",
+        "href": "https://github.com/Latchway/latchway"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Quickstart",
+      "href": "/quickstart"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/Latchway"
+    }
+  }
+}
