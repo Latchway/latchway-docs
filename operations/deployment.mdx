@@ -3,28 +3,29 @@ title: "Deployment"
 description: "Deploy the single Latchway image with PostgreSQL and production secret custody."
 ---
 
-Latchway ships one non-root OCI image for API, worker, migrations, diagnostics,
-CLI commands, and the embedded administration console. PostgreSQL 15 or newer
-is the only required external service.
+Latchway's source builds one non-root OCI candidate for API, worker, migrations,
+diagnostics, CLI commands, and the embedded administration console. PostgreSQL
+15 or newer is the only required external service.
 
 <Warning>
   No stable version 1 image has been published. Treat source-built images as
   evaluation candidates until release promotion and provenance checks pass.
 </Warning>
 
-## Supported deployment shapes
+## Implemented deployment templates
 
 | Platform | Application and data shape |
 | --- | --- |
-| Docker Compose | Release image, explicit migration service, and PostgreSQL |
+| Docker Compose | Source-built candidate image, explicit migration service, and PostgreSQL |
 | Google Cloud Run | Private Cloud SQL, Secret Manager, HTTPS service, and migration job |
 | AWS | ECS/Fargate, private RDS, Secrets Manager, and HTTPS ALB |
 | Fly.io | Fly Machines, attached PostgreSQL, and release-command migrations |
 | Cloudflare | Streaming Worker shim around the same container application |
 
-The private core source candidate contains reviewed Compose, Terraform,
-Cloud Run YAML, Fly, and Cloudflare assets. Their static validation is source
-evidence only; it is not proof that an operator account deployed them.
+The private core source candidate contains Compose, Terraform, Cloud Run YAML,
+Fly, and Cloudflare assets that pass repository-local static validation. That
+is source evidence only; it is not an independent deployment review or proof
+that an operator account deployed them.
 
 ## Required runtime values
 

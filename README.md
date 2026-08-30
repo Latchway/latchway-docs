@@ -4,10 +4,10 @@ This repository is the Mintlify source for Latchway's public documentation.
 Latchway is a self-hostable gateway that lets mobile and web applications call
 configured AI infrastructure without embedding upstream-provider credentials.
 
-The documentation currently describes the reviewed version 1 source candidate.
-It is not an announcement that the server image or SDK packages have been
-published. Release status is tracked on the site and in the core repository's
-evidence ledger.
+The documentation currently describes the repository-local tested version 1
+source candidate. It is not an independent security review or an announcement
+that the server image or SDK packages have been published. Release status is
+tracked on the site and in the core repository's evidence ledger.
 
 ## Local development
 

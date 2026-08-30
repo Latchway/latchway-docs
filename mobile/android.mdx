@@ -68,6 +68,11 @@ The SDK sends the server-provided canonical challenge binding directly as Play
 Integrity `requestHash`. The server validates project, request, application,
 licensing, and device verdicts.
 
+Provider warm-up is single-flight. An invalid standard-token provider can be
+renewed once per attestation, while generation-aware stale observations receive
+separately bounded retries so concurrent failures cannot rotate the provider
+without limit.
+
 Real success requires the exact signed application installed through the
 configured Google Play track. An emulator, fixture, or sideloaded APK is not
 valid production evidence. Continue with

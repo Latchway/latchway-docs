@@ -32,6 +32,12 @@ The stable process surface includes:
 - reclaimed-reservation and configuration-activation counters;
 - scheduled self-test outcomes and worker-job duration.
 
+Upstream-attempt telemetry includes a bounded `circuit_state` vocabulary:
+`stale`, `closed`, `open`, and `half_open`. These are recent, per-process
+observations only. They can differ briefly between replicas and never reorder a
+route, suppress or admit a dispatch, or reserve a probe. PostgreSQL-backed
+policy and quota state remain authoritative.
+
 Labels use closed bounded vocabularies. User IDs, installation IDs, request IDs,
 identity subjects, tokens, proofs, credentials, prompt content, and arbitrary
 provider text are not metric labels.

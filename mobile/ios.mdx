@@ -66,6 +66,11 @@ Production App Attest requires a production entitlement, matching server
 application policy, an Apple-signed application, and a supported physical
 device. A simulator or fixture cannot produce release evidence.
 
+The provider single-flights first-use key creation, persists a generated key
+before surfacing ordinary caller cancellation, and uses reset epochs so an
+in-flight operation cannot restore cleared state. Invalid-key recovery is
+single-flight and bounded to one replacement transition per evidence call.
+
 `quota(feature:)`, `refresh()`, `revokeCurrentInstallation()`, and local
 diagnostics are available on the client actor. For an active session,
 `diagnostics()` makes a protected best-effort server read and accepts its
