@@ -69,3 +69,18 @@ credentials, or raw attestation evidence.
 The release finalizer accepts only reports from the protected physical-device
 workflow for the same candidate. A handwritten success summary is not a
 substitute.
+
+## Runner custody
+
+Use an ephemeral or just-in-time physical-device runner dedicated to one
+candidate evidence run. It must not retain an organization token, package or
+registry credential, cloud OIDC authority, signing export, provisioning file,
+attestation object, or device proof after the run. Candidate checkout and test
+execution must occur without long-lived administrative credentials; any
+bootstrap grant should be short-lived, one-use, and bound to the repository,
+workflow run, candidate commit, and expected audience.
+
+Always destroy or reimage the runner after capture, revoke the bootstrap grant,
+and verify cleanup even when a test fails or is cancelled. A persistent runner
+that has executed candidate code is not a safe place to perform release
+mutation or hold organization-wide credentials.

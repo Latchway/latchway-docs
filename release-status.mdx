@@ -22,6 +22,7 @@ coordinates are release intent until protected promotion completes.
 | Live upstream-provider evidence | Requires protected credentials and bounded runs |
 | Cloud deployment and resilience evidence | Requires configured provider accounts |
 | Image signing, provenance, and post-publication checks | Required before support claim |
+| Independent security review | Workflow and schema implemented; protected reviewer receipt still required |
 | Client quota and diagnostics | Protected, redaction-safe, and locally validated |
 
 Promotion is evidence-driven. One exact candidate must pass protected live
@@ -29,6 +30,13 @@ provider, mobile device, cloud deployment, multi-replica failure, backup and
 restore, upgrade, load, vulnerability, SBOM, signature, provenance, registry,
 and cross-repository conformance gates. Local tests cannot manufacture those
 receipts.
+
+Release workflows now enforce a source/credential split for image publication,
+release promotion, public-state observation, deployment capture, and release
+record finalization. Candidate source is evaluated only in credential-free
+jobs; jobs holding registry, GitHub, provider, or OIDC authority do not check
+out or execute it and accept only bounded hash-verified handoffs. This closes a
+workflow trust boundary, but does not substitute for the external receipts.
 
 ## What is usable now
 
