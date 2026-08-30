@@ -6,6 +6,12 @@ description: "Evidence and operational checks required before a Latchway deploym
 A passing local build is necessary but not sufficient. Production readiness is
 attached to an exact immutable core image, configuration, and SDK source set.
 
+<Warning>
+  The current version 1 source candidate has not completed these protected
+  gates. This page is the required checklist, not a statement that production
+  readiness has been achieved.
+</Warning>
+
 ## Security and supply chain
 
 - Verify the OCI index and platform digest.
@@ -24,6 +30,8 @@ attached to an exact immutable core image, configuration, and SDK source set.
   recovery, and stuck-job reconciliation.
 - Test multi-replica contention, worker loss, database interruption, upstream
   failure, graceful shutdown, and replacement readiness.
+- Restrict the unauthenticated `/metrics` endpoint to trusted scrapers and
+  confirm telemetry contains no high-cardinality user or request identifiers.
 
 ## Application trust
 
@@ -52,5 +60,17 @@ attached to an exact immutable core image, configuration, and SDK source set.
 - Promote tags and packages only through the release workflows.
 - Install published packages and pull the public image in clean consumers after
   publication, then verify checksums and provenance again.
+
+## Exact-candidate rule
+
+Every passing receipt must bind the same core candidate commit, OCI index and
+per-architecture digests, contract bundle checksum, SDK commits, intended
+versions/tags, protected workflow identity, and execution environment. A result
+from another commit, a local developer run, an unsigned archive, or a manually
+edited summary cannot fill a release domain.
+
+Promotion must happen through the protected release workflows after all domains
+pass. A version string in source, a green pull request, or a package built
+locally is not publication.
 
 See [Release status](/release-status) for the current claim boundary.

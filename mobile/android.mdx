@@ -8,9 +8,8 @@ session state, RFC 9449 DPoP, OkHttp integration, and Google Play Integrity
 attestation. Native libraries support Android API 23 or newer.
 
 The intended version 1 artifacts have not been published to Maven Central.
-Use the samples and conformance tools in the
-[Android source repository](https://github.com/Latchway/latchway-android)
-until release promotion completes.
+Use an authorized Android source checkout, its samples, and its conformance
+tools until release promotion completes.
 
 After publication, align modules with the Latchway BOM:
 
@@ -52,6 +51,11 @@ Install both `interceptor()` and `originGuard()`. The network guard blocks DPoP
 and Latchway headers before OkHttp can follow a redirect to another origin and
 catches credentials added later by application interceptors or cookie jars.
 
+The client also exposes `quota(feature)`, `refresh()`,
+`revokeCurrentInstallation()`, and `diagnostics()`. The current gateway source
+candidate does not register the contract-declared diagnostics endpoint, so that
+call is a known RC limitation rather than a production-ready flow.
+
 ## Production Play Integrity
 
 The SDK sends the server-provided canonical challenge binding directly as Play
@@ -60,4 +64,5 @@ licensing, and device verdicts.
 
 Real success requires the exact signed application installed through the
 configured Google Play track. An emulator, fixture, or sideloaded APK is not
-valid production evidence.
+valid production evidence. Continue with
+[Physical-device proof](/mobile/device-proof).

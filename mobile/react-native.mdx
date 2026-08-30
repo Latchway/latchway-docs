@@ -14,9 +14,14 @@ and platform attestation.
 - Android API 24 or newer with Play Integrity configured
 - a version-compatible Latchway gateway and SDK source set
 
-The intended `1.0.0` package has not been published. For evaluation, use the
-[React Native source repository](https://github.com/Latchway/latchway-react-native-sdk)
-and its example application. Do not substitute an unverified registry package.
+The intended `1.0.0` package has not been published. For evaluation, use an
+authorized checkout of the React Native source candidate and its example
+application. Do not substitute an unverified registry package.
+
+The source example is the supported prepublication integration path because it
+pins the exact JavaScript, Swift, Android, contract, and gateway coordinates.
+Its local native overrides are development-only and must not appear in a
+published package.
 
 ## Create a client
 
@@ -65,6 +70,28 @@ requests receive at most one pre-dispatch retry for an exact canonical
 `session_expired` or `dpop_nonce_required` response. Redirects and cross-origin
 authorization are rejected.
 
+The client also exposes `quota(feature)`, `refresh()`,
+`revokeCurrentInstallation()`, and `dispose()`. `diagnostics()` is present in
+the SDK surface, but the current gateway source candidate does not register its
+contract-declared server endpoint; do not depend on remote diagnostics until a
+reviewed core candidate closes that release caveat.
+
+## Native host setup
+
+On iOS, install JavaScript dependencies, run CocoaPods from the host app, and
+enable App Attest for the exact application identifier. The bridge constructs
+the native App Attest provider and keeps Keychain, Secure Enclave, session, and
+attested-key state in the iOS SDK.
+
+On Android, compile against API 37 for the source candidate, configure the
+numeric Play cloud project in `android.playIntegrityCloudProjectNumber`, and
+include the locked `dev.latchway` native modules. The integrity token stays
+inside the native bridge.
+
+React Native 0.82 uses the New Architecture. Equivalent JavaScript clients in
+one runtime share the native security scope; conflicting security configuration
+for that active scope fails closed.
+
 ## Production attestation
 
 React Native delegates to the native SDKs:
@@ -74,4 +101,5 @@ React Native delegates to the native SDKs:
   installed through the configured Google Play track.
 
 Simulator, emulator, fixture, and sideloaded-debug success are development
-signals only. See [Security boundary](/concepts/security-boundary).
+signals only. See [Physical-device proof](/mobile/device-proof) and
+[Security boundary](/concepts/security-boundary).

@@ -7,6 +7,10 @@ Latchway version 1 is an implementation source candidate. The core and four
 SDK repositories build and pass their local conformance suites, but no public
 version 1 release should be inferred from source version strings.
 
+The current core binary identifies as `1.0.0-rc.1`. The intended stable server
+and SDK versions are `1.0.0`, contract `0.5.1`, and wire protocol `1`; those
+coordinates are release intent until protected promotion completes.
+
 | Area | Current claim |
 | --- | --- |
 | Core gateway and control plane | Implemented and locally validated |
@@ -18,12 +22,30 @@ version 1 release should be inferred from source version strings.
 | Live upstream-provider evidence | Requires protected credentials and bounded runs |
 | Cloud deployment and resilience evidence | Requires configured provider accounts |
 | Image signing, provenance, and post-publication checks | Required before support claim |
+| Remote client diagnostics | Contract-declared, but not registered by the current core source candidate |
 
 Promotion is evidence-driven. One exact candidate must pass protected live
 provider, mobile device, cloud deployment, multi-replica failure, backup and
 restore, upgrade, load, vulnerability, SBOM, signature, provenance, registry,
 and cross-repository conformance gates. Local tests cannot manufacture those
 receipts.
+
+## What is usable now
+
+Authorized evaluators can build the source checkouts, run the isolated local
+verification suite, inspect the immutable control plane, integrate the mobile
+SDK examples, and prepare protected release infrastructure. Supplemental local
+container, multi-architecture, scan/SBOM, failure, recovery, and load work
+exists, but it is bound to local checkpoints and does not establish a released
+image.
+
+## What must remain gated
+
+Do not advertise production App Attest or Play Integrity, live provider
+compatibility, cloud support, multi-replica resilience, signed packages, or
+public availability until the matching external domain has an authenticated
+receipt for the exact candidate. Missing credentials, devices, provider
+accounts, or registry access produce an open gate, never a synthetic pass.
 
 <Info>
   Until promotion completes, evaluate Latchway from audited source checkouts.

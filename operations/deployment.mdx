@@ -12,16 +12,19 @@ is the only required external service.
   evaluation candidates until release promotion and provenance checks pass.
 </Warning>
 
-## Supported templates
+## Supported deployment shapes
 
-- Docker Compose with an explicit migration service
-- Google Cloud Run with private Cloud SQL, Secret Manager, and a migration job
-- AWS ECS/Fargate with private RDS, Secrets Manager, and HTTPS ALB
-- Fly Machines with attached PostgreSQL and release-command migrations
-- Cloudflare Worker streaming shim around the same OCI container application
+| Platform | Application and data shape |
+| --- | --- |
+| Docker Compose | Release image, explicit migration service, and PostgreSQL |
+| Google Cloud Run | Private Cloud SQL, Secret Manager, HTTPS service, and migration job |
+| AWS | ECS/Fargate, private RDS, Secrets Manager, and HTTPS ALB |
+| Fly.io | Fly Machines, attached PostgreSQL, and release-command migrations |
+| Cloudflare | Streaming Worker shim around the same container application |
 
-The canonical templates live in the
-[core repository](https://github.com/Latchway/latchway/tree/main/deploy).
+The private core source candidate contains reviewed Compose, Terraform,
+Cloud Run YAML, Fly, and Cloudflare assets. Their static validation is source
+evidence only; it is not proof that an operator account deployed them.
 
 ## Required runtime values
 
@@ -35,12 +38,31 @@ The canonical templates live in the
 Keep secrets in the deployment platform's secret manager. Do not place them in
 container arguments, Terraform state output, CI logs, or client applications.
 
+The master key must decode to exactly 32 bytes. Generate it once, escrow it
+separately from PostgreSQL, and restore the matching value with the database.
+Changing it in place is not rotation.
+
 ## Process roles
 
 Start with the combined `all` role. At higher scale, run `serve --role api` and
 `serve --role worker` separately. Configuration state, replay uniqueness,
 quota reservation, job ownership, key rotation, and recovery coordination are
 PostgreSQL-backed.
+
+Production requires at least one worker heartbeat. A deployment that starts
+only API replicas can be live while correctly remaining unready.
+
+## Network boundary
+
+`LATCHWAY_PUBLIC_ORIGIN` must be the exact external HTTPS origin used by SDKs;
+it is DPoP protocol input, not display metadata. Terminate TLS at a trusted
+boundary, preserve the external scheme and host correctly, and reject alternate
+origins.
+
+Keep PostgreSQL private. Restrict `/metrics` to the scraper or private network.
+Publish `/healthz` and `/readyz` only as required by the platform. Never enable
+response buffering for SSE, and keep the platform timeout longer than the
+longest supported stream.
 
 ## Safe rollout
 
@@ -54,6 +76,22 @@ PostgreSQL-backed.
 5. Keep the platform request timeout longer than the maximum supported stream.
 6. Give `SIGTERM` draining at least the configured 30-second default.
 7. Never enable response buffering for server-sent events.
+
+At higher scale, calculate the worst-case combined API and worker connection
+pool plus migration, backup, and administration headroom. Leave at least 20
+percent database capacity beyond those explicit reservations.
+
+## Cloud evidence boundary
+
+Template rendering and a successful local image do not prove a cloud
+deployment. A production-supported claim requires provider-observed evidence
+for the exact immutable candidate on every advertised platform: account and
+resource identity, resolved image digest, remote migration status, secret
+references without values, health/readiness, streaming behavior, and graceful
+replacement.
+
+The current source candidate has local static and Compose evidence. Cloud Run,
+AWS, Fly.io, and Cloudflare provider receipts remain open release gates.
 
 Use the [production-readiness checklist](/operations/production-readiness)
 before accepting traffic.

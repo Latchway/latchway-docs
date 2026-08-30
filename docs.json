@@ -16,19 +16,54 @@
       },
       {
         "group": "Mobile SDKs",
-        "pages": ["mobile/react-native", "mobile/ios", "mobile/android"]
+        "pages": [
+          "mobile/react-native",
+          "mobile/ios",
+          "mobile/android",
+          "mobile/device-proof"
+        ]
       },
       {
-        "group": "Core concepts",
+        "group": "Identity and trust",
         "pages": [
+          "concepts/identity-and-attestation",
           "concepts/security-boundary",
+          "concepts/security-and-privacy"
+        ]
+      },
+      {
+        "group": "AI gateway",
+        "pages": [
+          "concepts/providers-and-protocols",
           "concepts/routing-and-quotas"
+        ]
+      },
+      {
+        "group": "Configure and administer",
+        "pages": [
+          "administration/configuration",
+          "administration/console",
+          "administration/observability"
+        ]
+      },
+      {
+        "group": "API and CLI reference",
+        "pages": [
+          "reference/client-api",
+          "reference/admin-api",
+          "reference/cli",
+          "reference/errors"
         ]
       },
       {
         "group": "Operations",
         "pages": [
           "operations/deployment",
+          "operations/telemetry-and-jobs",
+          "operations/self-tests",
+          "operations/key-rotation",
+          "operations/backup-restore",
+          "operations/upgrades",
           "operations/production-readiness"
         ]
       },
@@ -39,21 +74,10 @@
     ]
   },
   "navbar": {
-    "links": [
-      {
-        "type": "github",
-        "href": "https://github.com/Latchway/latchway"
-      }
-    ],
     "primary": {
       "type": "button",
       "label": "Quickstart",
       "href": "/quickstart"
-    }
-  },
-  "footer": {
-    "socials": {
-      "github": "https://github.com/Latchway"
     }
   }
 }
