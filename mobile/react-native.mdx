@@ -71,10 +71,18 @@ requests receive at most one pre-dispatch retry for an exact canonical
 authorization are rejected.
 
 The client also exposes `quota(feature)`, `refresh()`,
-`revokeCurrentInstallation()`, and `dispose()`. `diagnostics()` is present in
-the SDK surface, but the current gateway source candidate does not register its
-contract-declared server endpoint; do not depend on remote diagnostics until a
-reviewed core candidate closes that release caveat.
+`revokeCurrentInstallation()`, and `dispose()`. `diagnostics()` combines the
+native SDK/platform compatibility state with a protected server snapshot. It
+can report secure key-storage category, attestation support and accepted
+provider/trust, session state and expiry, refresh availability where the native
+surface exposes it, installation status, server version, and safe request/error
+IDs.
+
+Diagnostics never returns access or refresh tokens, DPoP proofs or private
+keys, raw attestation evidence, identity subjects or claims, or provider
+credentials. The server validates the active DPoP-bound session, consumes a
+fresh proof replay key, and rejects an SDK kind that does not match the stored
+`react_native_ios` or `react_native_android` installation.
 
 ## Native host setup
 

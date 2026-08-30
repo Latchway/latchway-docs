@@ -67,10 +67,16 @@ application policy, an Apple-signed application, and a supported physical
 device. A simulator or fixture cannot produce release evidence.
 
 `quota(feature:)`, `refresh()`, `revokeCurrentInstallation()`, and local
-diagnostics are available on the client actor. The current gateway source
-candidate does not register the contract-declared remote diagnostics route; the
-iOS SDK treats that remote enrichment as best-effort. Do not use it as a
-production readiness signal.
+diagnostics are available on the client actor. For an active session,
+`diagnostics()` makes a protected best-effort server read and accepts its
+enrichment only when contract/protocol, installation ID, iOS platform, active
+status, and DPoP public-key thumbprint agree with local state. The trust shown
+for the active client remains the trust bound into that accepted session grant.
+
+The result can include key-storage category, public key thumbprint, attestation
+support, session state/expiry, installation ID, server version, trust, and safe
+request/error IDs. It excludes tokens, DPoP proofs and private key material,
+raw attestation evidence, identity subjects or claims, and provider credentials.
 
 For release proof, disallow software-key fallback and follow
 [Physical-device proof](/mobile/device-proof).

@@ -52,9 +52,15 @@ and Latchway headers before OkHttp can follow a redirect to another origin and
 catches credentials added later by application interceptors or cookie jars.
 
 The client also exposes `quota(feature)`, `refresh()`,
-`revokeCurrentInstallation()`, and `diagnostics()`. The current gateway source
-candidate does not register the contract-declared diagnostics endpoint, so that
-call is a known RC limitation rather than a production-ready flow.
+`revokeCurrentInstallation()`, and `diagnostics()`. Diagnostics is a protected
+DPoP-bound read that reports server/contract/protocol versions, active
+installation status, Android key-storage category, session expiry, current
+refresh availability, and accepted trust provider/level/expiry.
+
+The server consumes the fresh proof replay key and requires the stored
+installation platform to match the Android SDK declaration. The response is
+no-store and excludes tokens, proofs, private keys, raw attestation evidence,
+identity subjects or claims, and provider credentials.
 
 ## Production Play Integrity
 
