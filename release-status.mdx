@@ -8,7 +8,8 @@ SDK repositories build and pass their local conformance suites, but no public
 version 1 release should be inferred from source version strings.
 
 The current core binary identifies as `1.0.0-rc.1`. The intended stable server
-and SDK versions are `1.0.0`, contract `0.5.1`, and wire protocol `1`; those
+and SDK versions are `1.0.0`; draft contract `1.0.0` selects wire protocol `2`
+as current while retaining wire `1` for compatible legacy clients. Those
 coordinates are release intent until protected promotion completes.
 
 | Area | Current claim |
@@ -31,12 +32,15 @@ restore, upgrade, load, vulnerability, SBOM, signature, provenance, registry,
 and cross-repository conformance gates. Local tests cannot manufacture those
 receipts.
 
-Release workflows now enforce a source/credential split for image publication,
-release promotion, public-state observation, deployment capture, and release
-record finalization. Candidate source is evaluated only in credential-free
-jobs; jobs holding registry, GitHub, provider, or OIDC authority do not check
-out or execute it and accept only bounded hash-verified handoffs. This closes a
-workflow trust boundary, but does not substitute for the external receipts.
+Image publication, release promotion, public-state observation, deployment
+capture, and release-record finalization enforce a source/credential split:
+their candidate source is evaluated in credential-free jobs, while registry,
+GitHub, provider, and OIDC jobs accept bounded hash-verified handoffs without
+checking out that source. Live JavaScript conformance remains fail-closed until
+its identity and App Check or Turnstile proofs are delivered as single-use,
+run-bound capabilities on a gateway-egress-only ephemeral runner. The split
+closes specific workflow trust boundaries, but does not substitute for the
+external receipts.
 
 ## What is usable now
 

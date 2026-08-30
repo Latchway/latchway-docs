@@ -1,0 +1,31 @@
+name: Verify canonical docs checkpoint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-source-checkpoint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify synchronized source checkpoint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out deployment mirror
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Verify every manifest-owned file
+        run: python3 scripts/check-source-manifest.py
+
+      - name: Test source-checkpoint verifier
+        run: python3 -m unittest scripts/test_check_source_manifest.py

@@ -8,8 +8,10 @@ requires platform attestation, secure key storage, RFC 9449 DPoP, origin
 pinning, bounded parsing, redaction, and replay-safe retry behavior; copying an
 HTTP example does not implement those controls.
 
-The current contract is `0.5.1` with wire protocol `1`. The deployment advertises
-its compatible server and SDK ranges through discovery.
+The current source contract is draft `1.0.0` with wire protocol `2`. The
+gateway also accepts wire protocol `1` on compatible legacy routes. Each
+deployment advertises its current and supported wire versions through
+discovery.
 
 ## Discovery
 
@@ -25,6 +27,12 @@ its compatible server and SDK ranges through discovery.
 | `POST /client/v1/session-challenges` | Verify the application identity input and create a one-time attestation challenge |
 | `POST /client/v1/sessions` | Consume the challenge, verify attestation, and issue a DPoP-bound session |
 | `POST /client/v1/sessions/refresh` | Rotate refresh state and issue a new short-lived access token |
+| `POST /client/v1/installation-families/current/components` | Provision a configured delegated component key from the authenticated root |
+| `POST /client/v1/component-sessions` | Consume a component provisioning grant and create its independent session family |
+| `POST /client/v1/installation-families/current/components/{component_id}/attestation-challenges` | Create a one-use version-2 direct App Attest challenge for an eligible current component |
+| `POST /client/v1/installation-families/current/components/{component_id}/attestation-exchanges` | Verify component-owned App Attest evidence and rotate that component into composite direct/delegated trust |
+| `DELETE /client/v1/installation-families/current/components/{component_id}` | Revoke one component without revoking siblings |
+| `DELETE /client/v1/installation-families/current` | Revoke the family and every component session beneath it |
 | `DELETE /client/v1/installations/current` | Revoke the current installation, sessions, and refresh family |
 | `GET /client/v1/features/{feature}/quota` | Return safe effective quota information for the current principal |
 | `GET /client/v1/diagnostics` | Return an allowlisted session, installation, trust, and compatibility snapshot |
@@ -32,6 +40,14 @@ its compatible server and SDK ranges through discovery.
 The initial challenge DPoP proof has no access-token hash. Protected and
 refresh proofs are bound to the exact public method and URL; a protected proof
 also binds the access token. Proof IDs are single-use across replicas.
+
+The two component-attestation routes require the current component access
+token and an `ath`-bound DPoP proof. They are limited to configured Apple
+Action, SSO, and watchOS components with an exact component App Attest policy.
+The version-2 binding covers the family, component, definition, component key,
+DPoP thumbprint, platform, and step-up purpose. A successful exchange preserves
+parent/delegation ancestry, records `delegated_direct_attested`, revokes the
+old component session family, and leaves the parent and siblings unchanged.
 
 ## Diagnostics
 
@@ -44,8 +60,8 @@ checks are the same authoritative boundaries used by protected requests.
 {
   "request_id": "req_...",
   "server_version": "1.0.0-rc.1",
-  "contract_version": "0.5.1",
-  "protocol_version": 1,
+  "contract_version": "1.0.0",
+  "protocol_version": 2,
   "installation": {
     "id": "ins_...",
     "platform": "react_native_ios",
@@ -92,13 +108,23 @@ configured protocol, replaces trusted fields such as physical model and output
 bound, and never accepts a client-selected destination, credential, price,
 plan, user, or usage value.
 
+The OpenAI and Anthropic labels describe bounded compatibility subsets, not
+arbitrary provider payload forwarding. In particular, Responses is limited to
+locally represented text/messages, supported local tools and tool results, and
+bounded structured-text controls; it forces `store: false` and rejects hosted
+state, remote tools, files, media, uploads, and background execution.
+Embeddings accepts bounded local string or token-array inputs and rejects
+unknown or caller-identity fields. Use restricted opaque HTTP only when an
+operator has explicitly configured its method, path, replay, header, body, and
+response bounds.
+
 ## Protocol headers
 
 SDKs own these headers:
 
 | Header | Meaning |
 | --- | --- |
-| `X-Latchway-Protocol-Version` | Exact wire protocol; `1` for this contract |
+| `X-Latchway-Protocol-Version` | Exact wire protocol; `2` is current and `1` remains accepted on compatible legacy routes |
 | `X-Latchway-SDK` | `ios`, `android`, `javascript`, or `react-native` |
 | `X-Latchway-SDK-Version` | Semantic SDK version |
 | `X-Latchway-Feature` | Server-configured client-facing feature |
@@ -120,8 +146,9 @@ responses are filtered and bounded by the selected route.
 No upstream retry or fallback occurs after a response byte reaches the client.
 SDKs may perform at most one pre-dispatch follow-up for an exact canonical
 `session_expired` or `dpop_nonce_required` problem, and only when the request is
-safe to replay under that SDK's body policy. Body-bearing React Native requests
-and streaming dispatches are not automatically replayed.
+safe to replay under that SDK's body policy. React Native may retry a body that
+its native transport already buffered within the 8 MiB bridge limit. Streaming
+or otherwise non-replayable request bodies are never retried.
 
 ## Problems and correlation
 

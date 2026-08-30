@@ -1,0 +1,114 @@
+---
+title: "Vercel AI SDK integration"
+description: "Evaluate the experimental feature-bound provider seam for Vercel AI SDK without treating local evidence as released support."
+---
+
+<Warning>
+  `@latchway/vercel-ai` is pre-release and unpublished. Vercel AI SDK `7.0.85`
+  has an experimental local-evidence row, not a supported release.
+</Warning>
+
+## 1. What this integration does
+
+The source Class A adapter supplies a Latchway provider through an
+OpenAI-compatible provider with guarded custom fetch, while keeping Vercel AI
+SDK messages, tools, output types, middleware, and telemetry semantics intact.
+
+## 2. Supported framework versions
+
+Vercel AI SDK `7.0.85` is the exact locally tested experimental version. The
+generated compatibility registry is canonical; no supported range is
+published.
+
+## 3. Supported Latchway versions
+
+None published for this adapter. Draft contract `1.0.0` uses current wire
+protocol `2`, but a contract coordinate does not imply framework support.
+
+## 4. Security level
+
+| Capability | Target and current status |
+| --- | --- |
+| Full DPoP preserved | Passes local adapter tests through the guarded Latchway transport |
+| Private key remains native | Not applicable to the JavaScript adapter; native hosts must provide a native-backed transport |
+| Streaming | `streamText`-compatible response streaming passes local AI SDK `7.0.85` tests |
+| Cancellation | Abort propagation passes local adapter tests |
+| App extensions | Not provided by this JavaScript integration |
+| Structured output | Conditional; not release-evidenced |
+| Tool calls | Conditional; not release-evidenced |
+| Protocol | Draft wire 2 covers Responses, Chat Completions, embeddings, and conditional images |
+
+## 5. Install packages
+
+Do not install an unverified `@latchway/vercel-ai` package. Published package
+integrity and a compatibility row are release prerequisites.
+
+## 6. Create the Latchway client
+
+Use the platform client that keeps identity input, session state, and DPoP key
+material out of framework code.
+
+## 7. Bind a feature
+
+The provider's model identifier represents a Latchway feature. It must not
+expose a provider or physical model selector.
+
+## 8. Create the framework client
+
+The source adapter uses the custom-provider and guarded-custom-fetch seams.
+Those types remain pre-release until hosted conformance and package publication
+close.
+
+## 9. Send a non-streaming request
+
+Local adapter tests cover the provider's non-streaming request path. No runnable
+package example is advertised until its exact types and publication integrity
+are locked.
+
+## 10. Send a streaming request
+
+`streamText` must preserve incremental delivery, backpressure, final usage,
+provider errors, and abort behavior.
+
+## 11. Use tools
+
+Tools remain Vercel AI SDK abstractions. Latchway does not own or execute them.
+
+## 12. Use structured output
+
+The adapter must declare only capabilities it translates without weakening
+validation or feature routing.
+
+## 13. Handle cancellation
+
+The framework abort signal must cancel the active transport and must not create
+an automatic replay.
+
+## 14. Handle quota failures
+
+Preserve the canonical Latchway problem and request ID through the provider
+error surface.
+
+## 15. Handle session renewal
+
+Single-flight refresh may retry only a replayable request rejected before
+upstream dispatch, with a new DPoP proof.
+
+## 16. Known limitations
+
+Framework runtime and platform support differ, especially in React Native. A
+browser-only capability must not be advertised on native runtimes.
+
+## 17. Verify the integration
+
+Required cases include `generateText`, `streamText`, structured output, tools,
+abort, middleware, retries, telemetry interaction, and provider metadata.
+
+## 18. Troubleshooting
+
+Confirm the runtime supports the selected extension seam and that secondary
+requests never receive Latchway credentials.
+
+## 19. Compatibility matrix
+
+No supported row is published. See [Compatibility](/reference/compatibility).

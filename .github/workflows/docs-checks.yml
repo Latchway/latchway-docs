@@ -22,6 +22,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
+      - name: Verify synchronized source checkpoint
+        run: python3 scripts/check-source-manifest.py
+
+      - name: Test source-checkpoint verifier
+        run: python3 -m unittest scripts/test_check_source_manifest.py
+
       - name: Install pnpm
         uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
         with:
@@ -36,6 +42,19 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Expose the pinned MDX parser
+        run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+
+      - name: Lint public prose
+        uses: vale-cli/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3
+        with:
+          fail_on_error: true
+          files: .
+          filter_mode: nofilter
+          sync: false
+          version: 3.17.0
+          workdir: .
 
       - name: Validate site
         env:
