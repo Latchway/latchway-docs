@@ -9,3 +9,52 @@ sdkVersion: "1.0.0"
 lastVerified: "2026-08-31"
 owner: "docs"
 ---
+
+Every journey separates deterministic source evaluation from production
+hardening. Start with the operator journey if no Latchway gateway is running.
+
+<CardGroup cols={3}>
+  <Card title="Operator" icon="server-cog" href="/operate/quickstart">
+    Start PostgreSQL and Latchway, then pass `latchway verify local`.
+  </Card>
+  <Card title="iOS" icon="apple" href="/clients/ios/quickstart">
+    Authorize a URLSession request and prepare App Attest on a physical device.
+  </Card>
+  <Card title="Android" icon="smartphone" href="/clients/android/quickstart">
+    Build an OkHttp client and prepare a Play-distributed integrity test.
+  </Card>
+  <Card title="Web" icon="globe-2" href="/clients/web/quickstart">
+    Create a WebCrypto-bound browser client and stream through fetch.
+  </Card>
+  <Card title="React Native" icon="atom" href="/clients/react-native/quickstart">
+    Exercise one TypeScript API through native iOS and Android transports.
+  </Card>
+</CardGroup>
+
+## Two distinct stages
+
+<Tabs>
+  <Tab title="Local source evaluation">
+    <Badge color="blue">Local</Badge>
+
+    Use Docker Compose, PostgreSQL, deterministic identity and upstream
+    fixtures, signed debug evidence owned by the verifier, and a temporary
+    schema. This proves the source path without third-party accounts.
+  </Tab>
+  <Tab title="Production hardening">
+    <Badge color="green">Production</Badge>
+
+    Configure real identity, production attestation or browser-risk policy,
+    TLS, exact origins, upstream credentials, immutable routes and limits,
+    operational jobs, backups, and release evidence.
+  </Tab>
+</Tabs>
+
+<Warning>
+  A passing local verifier does not prove App Attest, Play Integrity, browser
+  integrity, live-provider behavior, a cloud deployment, or a published SDK.
+</Warning>
+
+Continue with the [operator quickstart](/operate/quickstart), then choose a
+client journey after the gateway has an application resource ID, environment,
+feature, and compatible trust policy.
