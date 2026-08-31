@@ -1,0 +1,42 @@
+<Info>
+  Generated from [latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/LangChain4jFrameworkConformanceTest.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/LangChain4jFrameworkConformanceTest.kt#L21-L56) at release `v1.0.0`. Bundle SHA-256: `4e1dbdb0c1a98e771ac2291dc0386bb095a2a6fedd36be166e0c984a851706ba`.
+</Info>
+
+```kotlin
+class LangChain4jFrameworkConformanceTest {
+    @Test
+    fun langChain4jUsesItsOkHttpSpiWithTheLatchwayHooks() {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(CHAT_COMPLETION),
+        )
+        server.start()
+        val harness = FrameworkConformanceHarness(server)
+        val resources = ClientResources()
+        val model = OpenAiChatModel.builder()
+            .baseUrl(server.url("/v1").toString())
+            .apiKey(PROVIDER_PLACEHOLDER)
+            .modelName("framework-fixture")
+            .maxRetries(0)
+            .httpClientBuilder(resources.langChainBuilder(harness))
+            .build()
+
+        try {
+            val answer = model.chat("Say fixture")
+            val recorded = server.takeDataRequest()
+
+            assertEquals("fixture accepted", answer)
+            assertEquals(2, server.controlRequestCount)
+            assertEquals("POST /v1/chat/completions HTTP/1.1", recorded.requestLine)
+            assertFrameworkAuthorization(recorded)
+            assertTrue(recorded.body.readUtf8().contains("framework-fixture"))
+        } finally {
+            resources.close()
+            harness.close()
+            server.shutdown()
+        }
+    }
+```

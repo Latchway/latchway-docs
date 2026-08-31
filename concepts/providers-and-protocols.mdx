@@ -1,6 +1,13 @@
 ---
 title: "Providers and protocols"
 description: "Configure protected AI and HTTP upstreams without exposing routes, models, or credentials to clients."
+icon: "book-open"
+audience: "mixed"
+pageType: "concept"
+serverVersion: "1.0.0"
+sdkVersion: "1.0.0"
+lastVerified: "2026-08-31"
+owner: "security"
 ---
 
 Latchway separates the public request shape from the protected upstream target.
@@ -81,6 +88,10 @@ A route can narrow or replace these values within the ten-minute total bound.
 Fallback and retry use the selected route's effective values and can happen
 only for configured conditions before any response bytes are committed.
 Restricted opaque HTTP also requires explicit method replay safety.
+Its preferred path policy is a pairwise-disjoint set of exact-depth templates
+with optional whole-segment captures. Captures never change the protected
+target. Compatibility-only `pathPrefixes` retain v1 segment-bound behavior but
+cannot be combined with templates.
 
 ## Trusted accounting
 

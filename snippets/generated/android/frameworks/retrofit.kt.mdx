@@ -1,0 +1,53 @@
+<Info>
+  Generated from [latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/RetrofitFrameworkConformanceTest.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/RetrofitFrameworkConformanceTest.kt#L28-L74) at release `v1.0.0`. Bundle SHA-256: `4e1dbdb0c1a98e771ac2291dc0386bb095a2a6fedd36be166e0c984a851706ba`.
+</Info>
+
+```kotlin
+class RetrofitFrameworkConformanceTest {
+    @Test
+    fun retrofitUsesTheProductionHooksAndReplacesItsPlaceholderAuthorization() {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"id\":\"resp_retrofit\",\"status\":\"completed\"}"),
+        )
+        server.start()
+        val harness = FrameworkConformanceHarness(server)
+        val http = harness.okHttpBuilder().build()
+
+        try {
+            val response = retrofit(server, http).response(
+                authorization = "Bearer $PROVIDER_PLACEHOLDER",
+                body = "{\"model\":\"feature-selected-server-side\"}"
+                    .toRequestBody(JSON),
+            ).execute()
+            val request = server.takeDataRequest()
+
+            assertTrue(response.isSuccessful)
+            assertEquals(2, server.controlRequestCount)
+            assertFrameworkAuthorization(request)
+            assertEquals("POST /v1/responses HTTP/1.1", request.requestLine)
+            assertTrue(request.body.readUtf8().contains("feature-selected-server-side"))
+        } finally {
+            close(http, harness, server)
+        }
+    }
+
+    @Test
+    fun retrofitStreamingIsIncrementalAndCallCancellationReachesOkHttp() {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "text/event-stream")
+                .setChunkedBody(
+                    chunks = listOf("data: first\n", "data: second\n"),
+                    delay = 2,
+                    unit = TimeUnit.SECONDS,
+                ),
+        )
+        server.start()
+        val canceled = CountDownLatch(1)
+```

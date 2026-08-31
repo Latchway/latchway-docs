@@ -1,0 +1,577 @@
+---
+title: "Android SDK source bundle"
+description: "Generated, version-bound examples and compatibility metadata for Android SDK 1.0.0."
+---
+
+<Warning>
+  This page proves the checked-in source bundle and its provenance. It does not claim
+  that the package or protected external release evidence has been published.
+</Warning>
+
+## Bundle identity
+
+| Field | Value |
+| --- | --- |
+| Package | `dev.latchway` |
+| Release | `v1.0.0` |
+| Commit | `659b9c8728a3766bd1ed383e840515c4227305ae` |
+| Source tree clean | `yes` |
+| Bundle SHA-256 | `4e1dbdb0c1a98e771ac2291dc0386bb095a2a6fedd36be166e0c984a851706ba` |
+
+## Supported versions
+
+| Dependency or platform | Tested version | Source |
+| --- | --- | --- |
+| dev.latchway | `1.0.0` | `latchway-core/src/main/kotlin/dev/latchway/core/LatchwayApi.kt:L1-L10` |
+| Android API | `23` | `README.md:L27-L29` |
+| OkHttp minimum | `4.9.2` | `README.md:L27-L31` |
+| OkHttp latest | `5.3.0` | `gradle/libs.versions.toml:L1-L15` |
+| Retrofit minimum | `2.11.0` | `README.md:L32-L35` |
+| Retrofit latest | `3.0.0` | `gradle/libs.versions.toml:L1-L15` |
+| OpenAI Kotlin minimum | `4.0.1` | `README.md:L32-L35` |
+| OpenAI Kotlin latest | `4.1.0` | `gradle/libs.versions.toml:L1-L15` |
+| LangChain4j | `1.19.0` | `gradle/libs.versions.toml:L1-L15` |
+| Koog | `1.1.1` | `gradle/libs.versions.toml:L1-L15` |
+
+## Version-bound examples
+
+### `frameworks/koog.kt`
+
+Source: [latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/KoogFrameworkConformanceTest.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/KoogFrameworkConformanceTest.kt#L42-L88)
+
+```kotlin
+    @Test
+    fun koogPreservesChatToolsAndStructuredOutputThroughLatchwayOkHttp() = runBlocking {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(CHAT_COMPLETION),
+        )
+        server.start()
+        val harness = FrameworkConformanceHarness(server)
+        val fixture = koog(server, harness)
+        val schema = buildJsonObject {
+            put("type", "object")
+            put("x-latchway-fixture", "structured-output")
+        }
+        val request = prompt(
+            id = "koog-structured-fixture",
+            params = OpenAIChatParams(
+                schema = LLMParams.Schema.JSON.Basic("fixture_answer", schema),
+            ),
+        ) {
+            user("Say fixture")
+        }
+        val tools = listOf(
+            ToolDescriptor(
+                name = "fixture_lookup",
+                description = "Return deterministic fixture data",
+            ),
+        )
+
+        try {
+            val answer = fixture.client.execute(request, OpenAIModels.Chat.GPT4o, tools)
+            val recorded = server.takeDataRequest()
+            val body = JSONObject(recorded.body.readUtf8())
+
+            assertEquals("fixture accepted", answer.textContent())
+            assertEquals("POST /v1/chat/completions HTTP/1.1", recorded.requestLine)
+            assertFrameworkAuthorization(recorded)
+            assertEquals("fixture_lookup", body.getJSONArray("tools").getJSONObject(0)
+                .getJSONObject("function").getString("name"))
+            assertTrue(body.getJSONObject("response_format").toString().contains("structured-output"))
+            assertFalse(body.toString().contains(PROVIDER_PLACEHOLDER))
+        } finally {
+            close(fixture, harness, server)
+        }
+    }
+```
+
+### `frameworks/langchain4j.kt`
+
+Source: [latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/LangChain4jFrameworkConformanceTest.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/LangChain4jFrameworkConformanceTest.kt#L21-L56)
+
+```kotlin
+class LangChain4jFrameworkConformanceTest {
+    @Test
+    fun langChain4jUsesItsOkHttpSpiWithTheLatchwayHooks() {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(CHAT_COMPLETION),
+        )
+        server.start()
+        val harness = FrameworkConformanceHarness(server)
+        val resources = ClientResources()
+        val model = OpenAiChatModel.builder()
+            .baseUrl(server.url("/v1").toString())
+            .apiKey(PROVIDER_PLACEHOLDER)
+            .modelName("framework-fixture")
+            .maxRetries(0)
+            .httpClientBuilder(resources.langChainBuilder(harness))
+            .build()
+
+        try {
+            val answer = model.chat("Say fixture")
+            val recorded = server.takeDataRequest()
+
+            assertEquals("fixture accepted", answer)
+            assertEquals(2, server.controlRequestCount)
+            assertEquals("POST /v1/chat/completions HTTP/1.1", recorded.requestLine)
+            assertFrameworkAuthorization(recorded)
+            assertTrue(recorded.body.readUtf8().contains("framework-fixture"))
+        } finally {
+            resources.close()
+            harness.close()
+            server.shutdown()
+        }
+    }
+```
+
+### `frameworks/openai-kotlin.kt`
+
+Source: [latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/OpenAiKotlinFrameworkConformanceTest.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/OpenAiKotlinFrameworkConformanceTest.kt#L28-L56)
+
+```kotlin
+class OpenAiKotlinFrameworkConformanceTest {
+    @Test
+    fun aallamOpenAiKotlinUsesThePreconfiguredLatchwayOkHttpEngine() = runBlocking {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody(CHAT_COMPLETION),
+        )
+        server.start()
+        val harness = FrameworkConformanceHarness(server)
+        val http = harness.okHttpBuilder().build()
+        val openAI = openAI(server, http)
+
+        try {
+            val completion = openAI.chatCompletion(request())
+            val recorded = server.takeDataRequest()
+
+            assertEquals("chatcmpl_latchway", completion.id)
+            assertEquals(2, server.controlRequestCount)
+            assertTrue(completion.choices.isNotEmpty())
+            assertEquals("POST /v1/chat/completions HTTP/1.1", recorded.requestLine)
+            assertFrameworkAuthorization(recorded)
+            assertTrue(recorded.body.readUtf8().contains("framework-fixture"))
+        } finally {
+            close(openAI, http, harness, server)
+        }
+    }
+```
+
+### `frameworks/retrofit.kt`
+
+Source: [latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/RetrofitFrameworkConformanceTest.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/latchway-okhttp/src/test/kotlin/dev/latchway/okhttp/RetrofitFrameworkConformanceTest.kt#L28-L74)
+
+```kotlin
+class RetrofitFrameworkConformanceTest {
+    @Test
+    fun retrofitUsesTheProductionHooksAndReplacesItsPlaceholderAuthorization() {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"id\":\"resp_retrofit\",\"status\":\"completed\"}"),
+        )
+        server.start()
+        val harness = FrameworkConformanceHarness(server)
+        val http = harness.okHttpBuilder().build()
+
+        try {
+            val response = retrofit(server, http).response(
+                authorization = "Bearer $PROVIDER_PLACEHOLDER",
+                body = "{\"model\":\"feature-selected-server-side\"}"
+                    .toRequestBody(JSON),
+            ).execute()
+            val request = server.takeDataRequest()
+
+            assertTrue(response.isSuccessful)
+            assertEquals(2, server.controlRequestCount)
+            assertFrameworkAuthorization(request)
+            assertEquals("POST /v1/responses HTTP/1.1", request.requestLine)
+            assertTrue(request.body.readUtf8().contains("feature-selected-server-side"))
+        } finally {
+            close(http, harness, server)
+        }
+    }
+
+    @Test
+    fun retrofitStreamingIsIncrementalAndCallCancellationReachesOkHttp() {
+        val server = LoopbackHttpServer()
+        server.enqueue(
+            LoopbackResponse()
+                .setResponseCode(200)
+                .addHeader("Content-Type", "text/event-stream")
+                .setChunkedBody(
+                    chunks = listOf("data: first\n", "data: second\n"),
+                    delay = 2,
+                    unit = TimeUnit.SECONDS,
+                ),
+        )
+        server.start()
+        val canceled = CountDownLatch(1)
+```
+
+### `quickstart/basic-client.kt`
+
+Source: [sample-basic/src/main/kotlin/dev/latchway/sample/basic/MainActivity.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/sample-basic/src/main/kotlin/dev/latchway/sample/basic/MainActivity.kt#L1-L39)
+
+```kotlin
+package dev.latchway.sample.basic
+
+import android.app.Activity
+import android.os.Bundle
+import android.widget.TextView
+import dev.latchway.core.AttestationProvider
+import dev.latchway.core.IdentityTokenProvider
+import dev.latchway.okhttp.LatchwayClient
+import dev.latchway.okhttp.LatchwayConfiguration
+import okhttp3.HttpUrl
+
+public class MainActivity : Activity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(TextView(this).apply {
+            textSize = 18f
+            setPadding(48, 48, 48, 48)
+            text = "Latchway basic sample\n\nUse BasicLatchwayFactory with your app's existing " +
+                "identity-token provider and the attestation adapter required by your server policy. " +
+                "No credentials or synthetic attestation are bundled in this sample."
+        })
+    }
+}
+
+public object BasicLatchwayFactory {
+    public fun create(
+        activity: Activity,
+        gateway: HttpUrl,
+        applicationId: String,
+        environment: String,
+        identityTokenProvider: IdentityTokenProvider,
+        attestationProvider: AttestationProvider,
+    ): LatchwayClient = LatchwayClient(
+        configuration = LatchwayConfiguration(gateway, applicationId, environment),
+        identityTokenProvider = identityTokenProvider,
+        attestationProvider = attestationProvider,
+        context = activity,
+    )
+}
+```
+
+### `quickstart/firebase-auth.kt`
+
+Source: [sample-firebase/src/main/kotlin/dev/latchway/sample/firebase/MainActivity.kt](https://github.com/Latchway/latchway-android/blob/659b9c8728a3766bd1ed383e840515c4227305ae/sample-firebase/src/main/kotlin/dev/latchway/sample/firebase/MainActivity.kt#L1-L301)
+
+```kotlin
+package dev.latchway.sample.firebase
+
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import dev.latchway.core.KeyBacking
+import dev.latchway.core.LatchwayException
+import dev.latchway.firebaseauth.FirebaseIdentityTokenProvider
+import dev.latchway.okhttp.LatchwayClient
+import dev.latchway.okhttp.LatchwayConfiguration
+import dev.latchway.okhttp.latchwayFeature
+import dev.latchway.playintegrity.PlayIntegrityAttestationProvider
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okio.Buffer
+import org.json.JSONObject
+import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+
+/** Runnable Firebase + Play Integrity golden journey using only public SDK APIs. */
+public class MainActivity : Activity() {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private lateinit var status: TextView
+    private lateinit var runButton: Button
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        status = TextView(this).apply {
+            text = "Configure Firebase, sign in normally, then run the Latchway golden journey."
+        }
+        runButton = Button(this).apply {
+            text = "Run golden journey"
+            setOnClickListener { startGoldenJourney() }
+        }
+        setContentView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 48, 48, 48)
+            addView(status)
+            addView(runButton)
+        })
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
+    }
+
+    private fun startGoldenJourney() {
+        if (!runButton.isEnabled) return
+        runButton.isEnabled = false
+        scope.launch {
+            try {
+                runGoldenJourney()
+            } finally {
+                runButton.isEnabled = true
+            }
+        }
+    }
+
+    private suspend fun runGoldenJourney() {
+        val deployment = GoldenJourneyDeployment.load(this)
+        if (deployment == null) {
+            status.text = "FAIL configuration: supply the documented Gradle properties."
+            return
+        }
+        if (FirebaseApp.getApps(this).isEmpty() || FirebaseAuth.getInstance().currentUser == null) {
+            status.text = "FAIL Firebase: configure Firebase and sign in through the app first."
+            return
+        }
+
+        var stage = GoldenJourneyStage.CONFIGURATION
+        var sessionEstablished = false
+        var revocationAttempted = false
+        val latchway = LatchwayClient(
+            configuration = LatchwayConfiguration(
+                baseUrl = deployment.gateway,
+                applicationId = deployment.applicationId,
+                environment = deployment.environment,
+                identityProvider = "firebase",
+                defaultFeature = deployment.feature,
+            ),
+            identityTokenProvider = FirebaseIdentityTokenProvider(
+                firebaseAuth = FirebaseAuth.getInstance(),
+                forceRefresh = true,
+            ),
+            attestationProvider = PlayIntegrityAttestationProvider(
+                context = applicationContext,
+                cloudProjectNumber = deployment.cloudProjectNumber,
+            ),
+            context = applicationContext,
+        )
+        val http = OkHttpClient.Builder()
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .retryOnConnectionFailure(false)
+            .addInterceptor(latchway.interceptor())
+            .addNetworkInterceptor(latchway.originGuard())
+            .authenticator(latchway.authenticator())
+            .build()
+
+        try {
+            stage = GoldenJourneyStage.RESPONSE
+            val request = Request.Builder()
+                .url(checkNotNull(deployment.gateway.resolve("v1/responses")))
+                .header("Accept", "text/event-stream")
+                .post(
+                    JSONObject()
+                        .put("model", deployment.model)
+                        .put("input", "Return the word verified.")
+                        .put("stream", true)
+                        .toString()
+                        .toRequestBody("application/json".toMediaType()),
+                )
+                .latchwayFeature(deployment.feature)
+                .build()
+            val streamed = http.newCall(request).awaitIncremental(MAXIMUM_STREAM_BYTES)
+            if (streamed.status !in 200..299 || streamed.byteCount == 0L || streamed.requestId == null) {
+                throw GoldenJourneyFailure(stage, streamed.status, streamed.requestId)
+            }
+            sessionEstablished = true
+
+            stage = GoldenJourneyStage.DIAGNOSTICS
+            val diagnostics = latchway.diagnostics()
+            if (diagnostics.requestId.isBlank() ||
+                diagnostics.trustProvider != "play_integrity" ||
+                diagnostics.trustLevel !in setOf("device_verified", "strong_device_verified") ||
+                diagnostics.key.backing == KeyBacking.SOFTWARE
+            ) {
+                throw GoldenJourneyFailure(stage, requestId = diagnostics.requestId)
+            }
+
+            stage = GoldenJourneyStage.QUOTA
+            val quota = latchway.quota(deployment.feature)
+            if (quota.feature != deployment.feature) {
+                throw GoldenJourneyFailure(stage, requestId = diagnostics.requestId)
+            }
+
+            stage = GoldenJourneyStage.REVOCATION
+            revocationAttempted = true
+            latchway.revokeCurrentInstallation()
+            FirebaseAuth.getInstance().signOut()
+            status.text = "PASS · response ${streamed.requestId} · diagnostics ${diagnostics.requestId} · " +
+                "quota ${quota.limits.size} limits · installation revoked · Firebase signed out"
+        } catch (error: Exception) {
+            // Cleanup revocation is attempted once only after a session was
+            // proven. Never replay an indeterminate revocation automatically.
+            withContext(NonCancellable) {
+                if (sessionEstablished && !revocationAttempted) {
+                    revocationAttempted = true
+                    runCatching { latchway.revokeCurrentInstallation() }
+                }
+                runCatching { FirebaseAuth.getInstance().signOut() }
+            }
+            if (error is CancellationException) throw error
+            status.text = safeFailure(stage, error)
+        } finally {
+            latchway.close()
+            http.dispatcher.cancelAll()
+            http.connectionPool.evictAll()
+            http.dispatcher.executorService.shutdown()
+        }
+    }
+}
+
+private enum class GoldenJourneyStage {
+    CONFIGURATION,
+    RESPONSE,
+    DIAGNOSTICS,
+    QUOTA,
+    REVOCATION,
+}
+
+private class GoldenJourneyFailure(
+    val stage: GoldenJourneyStage,
+    val status: Int? = null,
+    val requestId: String? = null,
+) : Exception()
+
+private data class GoldenJourneyDeployment(
+    val gateway: HttpUrl,
+    val applicationId: String,
+    val environment: String,
+    val feature: String,
+    val model: String,
+    val cloudProjectNumber: Long,
+) {
+    companion object {
+        @Suppress("DEPRECATION")
+        fun load(context: Context): GoldenJourneyDeployment? {
+            val metadata = runCatching {
+                context.packageManager.getApplicationInfo(
+                    context.packageName,
+                    PackageManager.GET_META_DATA,
+                ).metaData
+            }.getOrNull() ?: return null
+            fun value(name: String): String = metadata.get(name)?.toString().orEmpty()
+            val gateway = value("dev.latchway.gatewayUrl").toHttpUrlOrNull() ?: return null
+            val applicationId = value("dev.latchway.applicationId")
+            val environment = value("dev.latchway.environment")
+            val feature = value("dev.latchway.feature")
+            val model = value("dev.latchway.model")
+            val project = value("dev.latchway.cloudProjectNumber").toLongOrNull() ?: return null
+            if (!gateway.isHttps || !gateway.encodedPath.endsWith('/') || gateway.query != null ||
+                !APPLICATION_ID.matches(applicationId) || !IDENTIFIER.matches(environment) ||
+                !IDENTIFIER.matches(feature) || !IDENTIFIER.matches(model) || project <= 0
+            ) {
+                return null
+            }
+            return GoldenJourneyDeployment(
+                gateway,
+                applicationId,
+                environment,
+                feature,
+                model,
+                project,
+            )
+        }
+
+        private val APPLICATION_ID = Regex("^app_[0-7][0-9A-HJKMNP-TV-Z]{25}$")
+        private val IDENTIFIER = Regex("^[a-z][a-z0-9_-]{0,62}$")
+    }
+}
+
+private data class StreamObservation(
+    val status: Int,
+    val byteCount: Long,
+    val requestId: String?,
+)
+
+private suspend fun Call.awaitIncremental(maximumBytes: Long): StreamObservation =
+    suspendCancellableCoroutine { continuation ->
+        continuation.invokeOnCancellation { cancel() }
+        enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                if (continuation.isActive) continuation.resumeWithException(e)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    val observation = response.use { streamed ->
+                        val source = streamed.body.source()
+                        val buffer = Buffer()
+                        var count = 0L
+                        while (true) {
+                            val read = source.read(buffer, 8_192L)
+                            if (read == -1L) break
+                            count += read
+                            check(count <= maximumBytes) { "stream exceeded the example limit" }
+                            buffer.clear()
+                        }
+                        StreamObservation(
+                            status = streamed.code,
+                            byteCount = count,
+                            requestId = streamed.header("X-Latchway-Request-ID")
+                                ?.takeIf(SAFE_REQUEST_ID::matches),
+                        )
+                    }
+                    if (continuation.isActive) continuation.resume(observation)
+                } catch (error: Exception) {
+                    if (continuation.isActive) continuation.resumeWithException(error)
+                }
+            }
+        })
+    }
+
+private fun safeFailure(stage: GoldenJourneyStage, error: Exception): String = when (error) {
+    is LatchwayException ->
+        "FAIL ${stage.name.lowercase()}: ${error.code.wireValue} · ${error.documentationUrl}" +
+            (error.requestId?.let { " · request $it" } ?: "")
+    is GoldenJourneyFailure ->
+        "FAIL ${error.stage.name.lowercase()}" +
+            (error.status?.let { ": HTTP $it" } ?: "") +
+            (error.requestId?.let { " · request $it" } ?: "")
+    else -> "FAIL ${stage.name.lowercase()}: request did not complete"
+}
+
+private const val MAXIMUM_STREAM_BYTES = 1_048_576L
+private val SAFE_REQUEST_ID = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
+```

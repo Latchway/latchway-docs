@@ -1,0 +1,95 @@
+<Info>
+  Generated from [Sources/LatchwaySwiftOpenAI/LatchwaySwiftOpenAIHTTPClient.swift](https://github.com/Latchway/latchway-ios-sdk/blob/a0d0a118f897e594f8808067ce1a01fa571fdde2/Sources/LatchwaySwiftOpenAI/LatchwaySwiftOpenAIHTTPClient.swift#L11-L99) at release `v1.0.0`. Bundle SHA-256: `4342f060efa90b4e08db7bcd46194856b292fef65b42b5b70fa96c03e6d542e1`.
+</Info>
+
+```swift
+public struct LatchwaySwiftOpenAIHTTPClient: HTTPClient, Sendable {
+    public static let testedFrameworkVersion = "4.6.0"
+
+    public let transport: LatchwayFeatureTransport
+
+    public init(
+        client: LatchwayClient,
+        feature: String,
+        frameworkVersion: String = testedFrameworkVersion
+    ) {
+        transport = client.transport(
+            feature: feature,
+            framework: .swiftOpenAI(version: frameworkVersion)
+        )
+    }
+
+    public init(
+        client: LatchwayExtensionClient,
+        feature: String,
+        frameworkVersion: String = testedFrameworkVersion
+    ) {
+        transport = client.transport(
+            feature: feature,
+            framework: .swiftOpenAI(version: frameworkVersion)
+        )
+    }
+
+    init(transport: LatchwayFeatureTransport) {
+        self.transport = transport
+    }
+
+    /// The non-secret sentinel SwiftOpenAI may place in its Authorization
+    /// header. Latchway removes exactly this value before native authorization.
+    public var placeholderAPIKey: String { LatchwayFeatureTransport.placeholderAPIKey }
+
+    /// Creates a SwiftOpenAI service whose ordinary and streaming HTTP paths
+    /// both use this adapter. WebSocket Realtime is not supported because
+    /// SwiftOpenAI currently dispatches that path through `URLSession.shared`.
+    public func makeService(debugEnabled: Bool = false) throws -> any OpenAIService {
+        let address = try Self.swiftOpenAIAddress(for: transport.gatewayBaseURL)
+        return OpenAIServiceFactory.service(
+            apiKey: placeholderAPIKey,
+            overrideBaseURL: address.origin,
+            proxyPath: address.proxyPath,
+            overrideVersion: "v1",
+            httpClient: self,
+            debugEnabled: debugEnabled
+        )
+    }
+
+    public func data(for request: HTTPRequest) async throws -> (Data, HTTPResponse) {
+        let response = try await transport.send(Self.urlRequest(from: request))
+        return (
+            response.body,
+            HTTPResponse(statusCode: response.statusCode, headers: response.headers)
+        )
+    }
+
+    public func bytes(for request: HTTPRequest) async throws -> (HTTPByteStream, HTTPResponse) {
+        let response = try await transport.bytes(for: Self.urlRequest(from: request))
+        let lines = AsyncThrowingStream<String, Error>(bufferingPolicy: .bufferingOldest(1)) { continuation in
+            let producer = Task {
+                do {
+                    for try await line in response.bytes.lines {
+                        try Task.checkCancellation()
+                        try await Self.yieldWithBackpressure(line, to: continuation)
+                    }
+                    response.finish()
+                    continuation.finish()
+                } catch is CancellationError {
+                    response.cancel()
+                    continuation.finish(throwing: LatchwayError.cancelled)
+                } catch {
+                    response.cancel()
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in producer.cancel() }
+        }
+        var headers: [String: String] = [:]
+        for (name, value) in response.response.allHeaderFields {
+            guard let name = name as? String else { continue }
+            headers[name] = String(describing: value)
+        }
+        return (
+            .lines(lines),
+            HTTPResponse(statusCode: response.response.statusCode, headers: headers)
+        )
+    }
+```

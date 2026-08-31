@@ -1,0 +1,44 @@
+{
+  "format": 1,
+  "generator": "scripts/public_reference.py",
+  "outputs": [
+    {
+      "path": "reference/admin-api.mdx",
+      "sha256": "0f78830f6bb93bfcb4c9b9c5a19f2eb7f0c3fc45aadcb33e1461f47ee69d6727"
+    },
+    {
+      "path": "reference/compatibility.mdx",
+      "sha256": "6e5c761b40676f745677c7ee4239eeb92c6c09f6c9fa32f2fba4d62aeda38d73"
+    },
+    {
+      "path": "reference/config-schema.mdx",
+      "sha256": "3336240556fc37bb1e5cc8422423d64b7b2546a8cc80722d35da9280b2e57c3d"
+    },
+    {
+      "path": "reference/errors.mdx",
+      "sha256": "91eb0bdbe2100f6350f5f93204ab7ac95d37e7160f37ceec0712cfb9fdeca1c7"
+    }
+  ],
+  "sources": [
+    {
+      "path": "api/admin.openapi.yaml",
+      "sha256": "16ef99251467fa50fc8fab33afe3792177a9e196014bfff8b702aa1e1e1d0eb6"
+    },
+    {
+      "path": "api/config.schema.json",
+      "sha256": "1106e273939652f839edf12b056e884561f9706587a049ec6d7adfee78ec13d2"
+    },
+    {
+      "path": "api/error-codes.yaml",
+      "sha256": "55ae0a7b5df02ca668303346fdc2c73535db9922778eb1c1e6aa11cf2b0f8e15"
+    },
+    {
+      "path": "compatibility/frameworks.schema.json",
+      "sha256": "432ce20a7945ab3e85841ec856935e1d14572396f5e516990b4e2a0f36fe8e4a"
+    },
+    {
+      "path": "compatibility/frameworks.yaml",
+      "sha256": "9f51e26506e6b0a1251b5081650f501b5ff7f0ca5e743eb1f5a3fc43b08c9196"
+    }
+  ]
+}

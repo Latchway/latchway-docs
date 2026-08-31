@@ -1,0 +1,99 @@
+<Info>
+  Generated from [examples/vanilla/streaming-fetch.ts](https://github.com/Latchway/latchway-js/blob/3d1d372a550c38e74c073207e334805e03a09208/examples/vanilla/streaming-fetch.ts#L1-L93) at release `v1.0.0`. Bundle SHA-256: `4c10a5116d0398afe059610d8dd5182e770bda32c4402f17e7fc36e4d14abe6f`.
+</Info>
+
+```typescript
+import {
+  errorFromResponse,
+  LatchwayError,
+  type AuthenticatedTransport,
+  type FetchImplementation,
+  type LatchwayErrorCode,
+  type LatchwayErrorDocumentationURL,
+} from "@latchway/client";
+
+export interface HabitAssistantResult {
+  output: string;
+  requestID: string | null;
+}
+
+export interface SafeHabitAssistantFailure {
+  code: LatchwayErrorCode | null;
+  requestID: string | null;
+  retryable: boolean;
+  documentationURL: LatchwayErrorDocumentationURL | null;
+}
+
+export type HabitAssistantOutcome =
+  | { ok: true; result: HabitAssistantResult }
+  | { ok: false; error: SafeHabitAssistantFailure };
+
+export function createHabitAssistantFetch(
+  latchway: AuthenticatedTransport,
+): FetchImplementation {
+  return latchway.fetchFor("habit-assistant");
+}
+
+export async function streamHabitAssistant(
+  latchway: AuthenticatedTransport,
+  input: string,
+  signal?: AbortSignal,
+): Promise<HabitAssistantResult> {
+  const response = await createHabitAssistantFetch(latchway)("/v1/responses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ input, stream: true }),
+    ...(signal === undefined ? {} : { signal }),
+  });
+  if (!response.ok) throw await errorFromResponse(response.clone());
+  if (response.body === null) throw new Error("The protected response has no body.");
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let output = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      output += decoder.decode(value, { stream: true });
+    }
+    output += decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+  return {
+    output,
+    requestID: response.headers.get("X-Latchway-Request-ID"),
+  };
+}
+
+/** A docs-safe journey result that never includes response bodies or causes. */
+export async function runHabitAssistantSafely(
+  latchway: AuthenticatedTransport,
+  input: string,
+  signal?: AbortSignal,
+): Promise<HabitAssistantOutcome> {
+  try {
+    return { ok: true, result: await streamHabitAssistant(latchway, input, signal) };
+  } catch (error) {
+    return { ok: false, error: safeHabitAssistantFailure(error) };
+  }
+}
+
+export function safeHabitAssistantFailure(error: unknown): SafeHabitAssistantFailure {
+  if (error instanceof LatchwayError) {
+    return {
+      code: error.code,
+      requestID: error.requestID ?? null,
+      retryable: error.retryable,
+      documentationURL: error.documentationURL,
+    };
+  }
+  return {
+    code: null,
+    requestID: null,
+    retryable: false,
+    documentationURL: null,
+  };
+}
+```
