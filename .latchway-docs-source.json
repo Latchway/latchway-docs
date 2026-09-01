@@ -241,8 +241,8 @@
     "operate/installation-families/troubleshooting.mdx": "638ea2758337ad422facacebd2b8bf5fa637273f7fab7edb27af1f007b65dc3b",
     "operate/quickstart.mdx": "e77bbade82e7fb2ced225e5497a5a29e6235434ca8bac92d07fcb3f38e09015e",
     "operations/backup-restore.mdx": "435077edc0cf57b683133b4fdabfa995138d34a4b933fe9aa93f6ead2632a56e",
-    "operations/deploy-cloudflare-containers.mdx": "c76f2948a7d24a1978224eb164ddf3f94556f3e1e34caca551a626a05a6e9140",
-    "operations/deploy-google-cloud-run.mdx": "4bf738369d09a1576fc490a878747d07d318c469d689ce2bfbb3c7f135413970",
+    "operations/deploy-cloudflare-containers.mdx": "2a4f025c92ef1550f8ee4188937e02911186d6609981f78310eeb85b761858b0",
+    "operations/deploy-google-cloud-run.mdx": "29edcdd458a21ba8c300385e24d39866084c305edd2a1d77f6350ee318c61377",
     "operations/deployment.mdx": "f2e711911dd49df5ce476bea25e0f32d44974440978cf5e7cda651a770653a58",
     "operations/disaster-recovery.mdx": "b7957786e1c6a1e330f1f427cd90f8f304fdb98d9acba4ee22813dabfeb14ba4",
     "operations/key-rotation.mdx": "400775441541ff9f283fb5b7f15f41a1d6c8df75c8ad7a0351dcf2f9d46c9d68",
@@ -332,6 +332,6 @@
   },
   "format": 1,
   "source": "latchway/docs/public",
-  "source_commit": "2e9a895a23c70431ac077d38f9b8d0e930c7af32",
-  "source_tree_sha256": "c4367289bdf1748585a2617d40dc804d84b9cb88f97b0c0701bd35613fa7d522"
+  "source_commit": "0822ab8f0aee5084e045cedfd03f514abeb10f86",
+  "source_tree_sha256": "40c6c46aba7b6f0347f54176983b06803d97b1056d50a8467467c4cb641b8d03"
 }
