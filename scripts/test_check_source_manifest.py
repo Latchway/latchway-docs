@@ -13,6 +13,10 @@ SCRIPT = Path(__file__).with_name("check-source-manifest.py")
 
 
 class SourceManifestCheckTests(unittest.TestCase):
+    SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
+    SOURCE_TREE_SHA256 = (
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    )
     MIRROR_OWNED_FILES = (
         ".github/workflows/docs-checks.yml",
         ".github/workflows/docs-source-sync.yml",
@@ -46,6 +50,8 @@ class SourceManifestCheckTests(unittest.TestCase):
             "files": files,
             "format": 1,
             "source": "latchway/docs/public",
+            "source_commit": self.SOURCE_COMMIT,
+            "source_tree_sha256": self.SOURCE_TREE_SHA256,
         }
         payload.update(overrides)
         (self.root / ".latchway-docs-source.json").write_text(
@@ -141,6 +147,46 @@ class SourceManifestCheckTests(unittest.TestCase):
         )
         self.assert_rejected("unexpected canonical source")
 
+    def test_rejects_invalid_source_commit(self) -> None:
+        invalid_values: tuple[object, ...] = (
+            "A" * 40,
+            "0" * 39,
+            "g" * 40,
+            0,
+        )
+        for value in invalid_values:
+            with self.subTest(value=value):
+                self.write_manifest(
+                    {"index.mdx": self.digest(b"# Latchway\n")},
+                    source_commit=value,
+                )
+                self.assert_rejected("source_commit must be lowercase 40-hex")
+
+    def test_rejects_invalid_source_tree_sha256(self) -> None:
+        invalid_values: tuple[object, ...] = (
+            "A" * 64,
+            "0" * 63,
+            "g" * 64,
+            0,
+        )
+        for value in invalid_values:
+            with self.subTest(value=value):
+                self.write_manifest(
+                    {"index.mdx": self.digest(b"# Latchway\n")},
+                    source_tree_sha256=value,
+                )
+                self.assert_rejected("source_tree_sha256 must be lowercase 64-hex")
+
+    def test_rejects_missing_provenance_field(self) -> None:
+        manifest = self.root / ".latchway-docs-source.json"
+        for field in ("source_commit", "source_tree_sha256"):
+            with self.subTest(field=field):
+                self.write_manifest({"index.mdx": self.digest(b"# Latchway\n")})
+                payload = json.loads(manifest.read_text(encoding="utf-8"))
+                del payload[field]
+                manifest.write_text(json.dumps(payload), encoding="utf-8")
+                self.assert_rejected("manifest must contain exactly")
+
     def test_rejects_manifest_claiming_mirror_owned_workflow(self) -> None:
         workflow = self.write_file(
             ".github/workflows/docs-checks.yml", b"name: checks\n"
@@ -160,7 +206,7 @@ class SourceManifestCheckTests(unittest.TestCase):
         payload = json.loads(manifest.read_text(encoding="utf-8"))
         payload["commit"] = "unverified"
         manifest.write_text(json.dumps(payload), encoding="utf-8")
-        self.assert_rejected("manifest must contain only")
+        self.assert_rejected("manifest must contain exactly")
 
     def test_rejects_duplicate_json_keys(self) -> None:
         (self.root / ".latchway-docs-source.json").write_text(

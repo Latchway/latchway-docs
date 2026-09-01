@@ -15,6 +15,13 @@ from typing import Any
 MANIFEST_NAME = ".latchway-docs-source.json"
 EXPECTED_FORMAT = 1
 EXPECTED_SOURCE = "latchway/docs/public"
+EXPECTED_TOP_LEVEL_KEYS = {
+    "files",
+    "format",
+    "source",
+    "source_commit",
+    "source_tree_sha256",
+}
 FORBIDDEN_PARTS = {".git", "__pycache__", "node_modules"}
 MIRROR_OWNED_FILES = {
     ".github/workflows/docs-checks.yml",
@@ -53,15 +60,30 @@ def read_manifest(path: Path) -> dict[str, Any]:
         raise ManifestError(f"cannot read manifest: {error}") from error
     if not isinstance(data, dict):
         raise ManifestError("manifest root must be an object")
-    if set(data) != {"files", "format", "source"}:
-        raise ManifestError("manifest must contain only files, format, and source")
+    if set(data) != EXPECTED_TOP_LEVEL_KEYS:
+        raise ManifestError(
+            "manifest must contain exactly files, format, source, source_commit, "
+            "and source_tree_sha256"
+        )
     if type(data["format"]) is not int or data["format"] != EXPECTED_FORMAT:
         raise ManifestError(f"unsupported manifest format: {data['format']!r}")
     if data["source"] != EXPECTED_SOURCE:
         raise ManifestError(f"unexpected canonical source: {data['source']!r}")
+    validate_lowercase_hex("source_commit", data["source_commit"], 40)
+    validate_lowercase_hex("source_tree_sha256", data["source_tree_sha256"], 64)
     if not isinstance(data["files"], dict) or not data["files"]:
         raise ManifestError("manifest files must be a non-empty object")
     return data
+
+
+def validate_lowercase_hex(field: str, value: Any, length: int) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != length
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise ManifestError(f"{field} must be lowercase {length}-hex")
+    return value
 
 
 def validate_relative_path(value: Any) -> PurePosixPath:
