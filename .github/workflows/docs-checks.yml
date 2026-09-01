@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "17 5 * * 2"
 
 permissions:
   contents: read
@@ -63,3 +65,14 @@ jobs:
         # does not install a `vale` executable into later steps, so repeat only
         # the remaining self-contained documentation gates here.
         run: pnpm check:structure && pnpm validate && pnpm check:links && pnpm check:a11y
+
+      - name: Check external links on the weekly schedule
+        if: github.event_name == 'schedule'
+        env:
+          DO_NOT_TRACK: "1"
+        run: >-
+          pnpm exec mint broken-links
+          --check-external
+          --check-anchors
+          --check-redirects
+          --check-snippets
