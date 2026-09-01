@@ -29,3 +29,8 @@ jobs:
 
       - name: Test source-checkpoint verifier
         run: python3 -m unittest scripts/test_check_source_manifest.py
+
+      - name: Test Mintlify production-evidence verifier
+        run: >-
+          python3 -m unittest
+          scripts/test_mintlify_production_evidence.py

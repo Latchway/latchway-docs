@@ -1,0 +1,419 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.latchway.dev/schemas/mintlify-production-evidence.schema.json",
+  "title": "Latchway Mintlify production deployment evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "status",
+    "repository",
+    "source_checkpoint",
+    "deployment",
+    "workflow",
+    "claims",
+    "postdeploy",
+    "observations",
+    "started_at",
+    "finished_at",
+    "maximum_age_seconds"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "kind": { "const": "latchway_mintlify_production_deployment_evidence" },
+    "status": { "const": "passed" },
+    "repository": { "const": "https://github.com/Latchway/latchway-docs.git" },
+    "source_checkpoint": { "$ref": "#/$defs/sourceCheckpoint" },
+    "deployment": { "$ref": "#/$defs/deployment" },
+    "workflow": { "$ref": "#/$defs/workflow" },
+    "claims": { "$ref": "#/$defs/claims" },
+    "postdeploy": { "$ref": "#/$defs/postdeploy" },
+    "observations": { "$ref": "#/$defs/observations" },
+    "started_at": { "$ref": "#/$defs/dateTime" },
+    "finished_at": { "$ref": "#/$defs/dateTime" },
+    "maximum_age_seconds": { "const": 86400 }
+  },
+  "$defs": {
+    "commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "httpsUrl": {
+      "type": "string",
+      "pattern": "^https://[^/?#]+(?:/[^?#]*)?$",
+      "maxLength": 2048
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^/(?:[^\\s?#\\\\]+(?:/[^\\s?#\\\\]+)*)?$",
+      "maxLength": 1024
+    },
+    "sourceCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentation_commit",
+        "canonical_core_commit",
+        "source_manifest_sha256",
+        "source_tree_sha256",
+        "owned_file_count"
+      ],
+      "properties": {
+        "documentation_commit": { "$ref": "#/$defs/commit" },
+        "canonical_core_commit": { "$ref": "#/$defs/commit" },
+        "source_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "source_tree_sha256": { "$ref": "#/$defs/sha256" },
+        "owned_file_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "login", "type"],
+      "properties": {
+        "id": { "const": 109931778 },
+        "login": { "const": "mintlify[bot]" },
+        "type": { "const": "Bot" }
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status_id",
+        "state",
+        "environment",
+        "production_environment",
+        "transient_environment",
+        "environment_url",
+        "production_url",
+        "actor",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": { "type": "integer", "minimum": 1 },
+        "status_id": { "type": "integer", "minimum": 1 },
+        "state": { "const": "success" },
+        "environment": { "const": "production" },
+        "production_environment": { "const": true },
+        "transient_environment": { "const": false },
+        "environment_url": {
+          "enum": [
+            "https://docs.latchway.dev",
+            "https://latchway.mintlify.app"
+          ]
+        },
+        "production_url": { "const": "https://docs.latchway.dev" },
+        "actor": { "$ref": "#/$defs/actor" },
+        "created_at": { "$ref": "#/$defs/dateTime" },
+        "updated_at": { "$ref": "#/$defs/dateTime" }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repository",
+        "path",
+        "ref",
+        "event",
+        "expected_conclusion",
+        "head_sha",
+        "run_id",
+        "run_attempt",
+        "run_url"
+      ],
+      "properties": {
+        "repository": { "const": "Latchway/latchway-docs" },
+        "path": { "const": ".github/workflows/mintlify-production-evidence.yml" },
+        "ref": { "const": "refs/heads/main" },
+        "event": { "enum": ["deployment_status", "workflow_dispatch"] },
+        "expected_conclusion": { "const": "success" },
+        "head_sha": { "$ref": "#/$defs/commit" },
+        "run_id": { "type": "integer", "minimum": 1 },
+        "run_attempt": { "type": "integer", "minimum": 1 },
+        "run_url": {
+          "type": "string",
+          "pattern": "^https://github\\.com/Latchway/latchway-docs/actions/runs/[1-9][0-9]*$"
+        }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "documentation_commit_verified",
+        "github_deployment_success_verified",
+        "live_accessibility_baseline_verified",
+        "live_ai_outputs_verified",
+        "live_internal_links_verified",
+        "live_redirects_verified",
+        "live_source_checkpoint_verified",
+        "mintlify_actor_verified",
+        "production_environment_verified"
+      ],
+      "properties": {
+        "documentation_commit_verified": { "const": true },
+        "github_deployment_success_verified": { "const": true },
+        "live_accessibility_baseline_verified": { "const": true },
+        "live_ai_outputs_verified": { "const": true },
+        "live_internal_links_verified": { "const": true },
+        "live_redirects_verified": { "const": true },
+        "live_source_checkpoint_verified": { "const": true },
+        "mintlify_actor_verified": { "const": true },
+        "production_environment_verified": { "const": true }
+      }
+    },
+    "digestSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checked", "results_sha256"],
+      "properties": {
+        "checked": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "results_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "postdeploy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pages", "links", "accessibility", "redirects", "ai_outputs"],
+      "properties": {
+        "pages": {
+          "allOf": [
+            { "$ref": "#/$defs/digestSummary" },
+            {
+              "type": "object",
+              "properties": { "checked": { "type": "integer", "minimum": 100 } }
+            }
+          ]
+        },
+        "links": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relationships_checked",
+            "relationships_sha256",
+            "targets_checked",
+            "results_sha256"
+          ],
+          "properties": {
+            "relationships_checked": { "type": "integer", "minimum": 1, "maximum": 65536 },
+            "relationships_sha256": { "$ref": "#/$defs/sha256" },
+            "targets_checked": { "type": "integer", "minimum": 1, "maximum": 8192 },
+            "results_sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "accessibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pages_checked", "results_sha256", "rules"],
+          "properties": {
+            "pages_checked": { "type": "integer", "minimum": 100, "maximum": 4096 },
+            "results_sha256": { "$ref": "#/$defs/sha256" },
+            "rules": {
+              "const": [
+                "document-language-en",
+                "single-main-landmark",
+                "single-source-matched-h1",
+                "nonempty-document-title",
+                "source-matched-meta-description",
+                "image-alt-attribute"
+              ]
+            }
+          }
+        },
+        "redirects": { "$ref": "#/$defs/digestSummary" },
+        "ai_outputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "index_entries_checked",
+            "outputs_checked",
+            "results_sha256",
+            "source_llms_txt_sha256"
+          ],
+          "properties": {
+            "index_entries_checked": { "type": "integer", "minimum": 20, "maximum": 4096 },
+            "outputs_checked": { "type": "integer", "minimum": 22, "maximum": 4098 },
+            "results_sha256": { "$ref": "#/$defs/sha256" },
+            "source_llms_txt_sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "baseHttpObservation": {
+      "type": "object",
+      "required": [
+        "url",
+        "final_url",
+        "path",
+        "status",
+        "content_type",
+        "body_sha256",
+        "bytes"
+      ],
+      "properties": {
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "final_url": { "$ref": "#/$defs/httpsUrl" },
+        "path": { "$ref": "#/$defs/path" },
+        "status": { "type": "integer", "minimum": 200, "maximum": 299 },
+        "content_type": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "body_sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1, "maximum": 33554432 }
+      }
+    },
+    "pageObservation": {
+      "allOf": [
+        { "$ref": "#/$defs/baseHttpObservation" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "final_url",
+            "path",
+            "status",
+            "content_type",
+            "body_sha256",
+            "bytes",
+            "source_path",
+            "source_sha256",
+            "title",
+            "description",
+            "lang",
+            "main_count",
+            "h1_count",
+            "image_count",
+            "missing_alt_count",
+            "internal_link_count"
+          ],
+          "properties": {
+            "url": { "$ref": "#/$defs/httpsUrl" },
+            "final_url": { "$ref": "#/$defs/httpsUrl" },
+            "path": { "$ref": "#/$defs/path" },
+            "status": { "const": 200 },
+            "content_type": { "const": "text/html" },
+            "body_sha256": { "$ref": "#/$defs/sha256" },
+            "bytes": { "type": "integer", "minimum": 1, "maximum": 4194304 },
+            "source_path": { "type": "string", "pattern": "^[^/].*\\.mdx$", "maxLength": 1024 },
+            "source_sha256": { "$ref": "#/$defs/sha256" },
+            "title": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "description": { "type": "string", "minLength": 1, "maxLength": 1024 },
+            "lang": { "const": "en" },
+            "main_count": { "const": 1 },
+            "h1_count": { "const": 1 },
+            "image_count": { "type": "integer", "minimum": 0, "maximum": 4096 },
+            "missing_alt_count": { "const": 0 },
+            "internal_link_count": { "type": "integer", "minimum": 0, "maximum": 8192 }
+          }
+        }
+      ]
+    },
+    "linkObservation": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/baseHttpObservation" }
+      ]
+    },
+    "linkRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target"],
+      "properties": {
+        "source": { "$ref": "#/$defs/path" },
+        "target": { "$ref": "#/$defs/path" }
+      }
+    },
+    "redirectObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "destination", "url", "status", "location"],
+      "properties": {
+        "source": { "$ref": "#/$defs/path" },
+        "destination": { "$ref": "#/$defs/path" },
+        "url": { "$ref": "#/$defs/httpsUrl" },
+        "status": { "enum": [301, 308] },
+        "location": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "aiObservation": {
+      "type": "object",
+      "unevaluatedProperties": false,
+      "allOf": [
+        { "$ref": "#/$defs/baseHttpObservation" },
+        {
+          "type": "object",
+          "required": ["kind", "title"],
+          "properties": {
+            "kind": { "enum": ["llms_txt", "llms_full_txt", "markdown_page"] },
+            "title": {
+              "oneOf": [
+                { "type": "string", "minLength": 1, "maxLength": 256 },
+                { "type": "null" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "observations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pages", "link_relationships", "link_targets", "redirects", "ai_outputs"],
+      "properties": {
+        "pages": {
+          "type": "array",
+          "minItems": 100,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/pageObservation" }
+        },
+        "link_relationships": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 65536,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/linkRelationship" }
+        },
+        "link_targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8192,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/linkObservation" }
+        },
+        "redirects": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/redirectObservation" }
+        },
+        "ai_outputs": {
+          "type": "array",
+          "minItems": 22,
+          "maxItems": 4098,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/aiObservation" }
+        }
+      }
+    }
+  }
+}

@@ -24,10 +24,15 @@ EXPECTED_TOP_LEVEL_KEYS = {
 }
 FORBIDDEN_PARTS = {".git", "__pycache__", "node_modules"}
 MIRROR_OWNED_FILES = {
+    ".github/MINTLIFY_PRODUCTION_EVIDENCE.md",
     ".github/workflows/docs-checks.yml",
     ".github/workflows/docs-source-sync.yml",
+    ".github/workflows/mintlify-production-evidence.yml",
+    "schemas/mintlify-production-evidence.schema.json",
     "scripts/check-source-manifest.py",
+    "scripts/mintlify-production-evidence.py",
     "scripts/test_check_source_manifest.py",
+    "scripts/test_mintlify_production_evidence.py",
 }
 
 

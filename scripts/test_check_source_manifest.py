@@ -18,10 +18,15 @@ class SourceManifestCheckTests(unittest.TestCase):
         "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     )
     MIRROR_OWNED_FILES = (
+        ".github/MINTLIFY_PRODUCTION_EVIDENCE.md",
         ".github/workflows/docs-checks.yml",
         ".github/workflows/docs-source-sync.yml",
+        ".github/workflows/mintlify-production-evidence.yml",
+        "schemas/mintlify-production-evidence.schema.json",
         "scripts/check-source-manifest.py",
+        "scripts/mintlify-production-evidence.py",
         "scripts/test_check_source_manifest.py",
+        "scripts/test_mintlify_production_evidence.py",
     )
 
     def setUp(self) -> None:
