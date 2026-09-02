@@ -119,7 +119,7 @@
     "concepts/security-boundary.mdx": "6837d756f2d584ba28c87bdcb83db10b4a58974c6c9f292277a65b3fa76c4791",
     "concepts/trust-provenance.mdx": "d27284e55bce2edbe77a01c46f1aa1767c1e9cdde80015202aafbc51d63b4da6",
     "config/generated-page-metadata.json": "271fe6422ee97bf4068e922f403e48d9d226129140a3b2a6885853a6dfb21d78",
-    "config/generated-reference.json": "9e6d8d7fe42ef802ab164ca6dd1ea53bb03b49e839a03a7c087d985de7140253",
+    "config/generated-reference.json": "059e957bdcaae7eaf42389b1a84da1c3b2f6294f46311eb36c6101db64719321",
     "config/generated-sdk-bundles.json": "158811c67c115f1645ef0306aba99444abca89394eb16e0c276640b34ede3b80",
     "config/navigation.json": "0c5a3dd33cd313ed732380d58a88cceb72509ac3f9309ecc1273b5011a5bda47",
     "config/redirects.json": "d0e0fdc1de0dae8f5610eecef2e6a0560b6c2760ca9f1a69ac7dc601c583aed3",
@@ -223,7 +223,7 @@
     "errors/upstream-timeout.mdx": "c712b5cd7026961ca6539a60a806097aeb93eb27b2ab9dcdd62b6e62a753bd68",
     "errors/upstream-unavailable.mdx": "f2bb5947351ec175652c134794c6d37c570e86aecc1a7a1c40d86346431e3c83",
     "index.mdx": "8164edb05843fbaeac835a4c18121e983f17f705313283993b3007192b1514f4",
-    "integrations/foundation-models.mdx": "353de7ba6c87af4e58b8554f576acfb5c6db19219780824c847f4bc659ed9350",
+    "integrations/foundation-models.mdx": "9f08ef1ce19104e015938b999ea9395be273ef251787365741668350e35a6821",
     "integrations/koog-android.mdx": "13b964b08ab369bd19daa074087b79084f7b8b8fb2efdba55384745fe3ef3eba",
     "integrations/langchain-js.mdx": "c4a3eb70233b4c4f8164b4a08b00b8b20161b3140b7d4d7dd69bf90bdc2c4f61",
     "integrations/macpaw-openai.mdx": "501f6788b8220c1623d9d444b6d9c732aa2f82181141285549f4670aa230fabc",
@@ -270,7 +270,7 @@
     "reference/cel-policy-context.mdx": "72192982751c3cb54da8d943f6a7004ea5e8e669726526f76027f2d23853c5ac",
     "reference/cli.mdx": "1a00509b57f16c59b02bba9d8c0844241257049dccd2bd2f8ad2aefe84a5d8a3",
     "reference/client-api.mdx": "34cd2c4f7101f87d382ce1ea21400a73c964516cf1a2004b16060fd7ef9751a6",
-    "reference/compatibility.mdx": "d620b38d07e1cc87dd4e5b17de4390a9565370c6dcb6c294e062a742d9bfa02f",
+    "reference/compatibility.mdx": "6b77671e7a1ca56445cd006d37890d05bc6ddd81a39b394c83762b503555a87e",
     "reference/config-schema.mdx": "8a2db70a0de8008b83e2aba8e96fd84192f8f5adcd77c471d3e321d547f6f77b",
     "reference/environment-variables.mdx": "2ea26e91d59e065b6ca14cba0d6e5acd08527292e736c4a87d6e11ca1a200ea5",
     "reference/errors.mdx": "0b63a77b73984a2f37bcbdf93263b18deee4c42959cbe04f6651c75693634f13",
@@ -346,6 +346,6 @@
   },
   "format": 1,
   "source": "latchway/docs/public",
-  "source_commit": "444963e2bb5522379a6fa8db22ad5a043930da49",
-  "source_tree_sha256": "ef2f63b507c5dd15ef56d2bd873a6a4af3b5192e22ca247ed4adcfac47b046f0"
+  "source_commit": "f56dfdaa6de0bead541c666204efaa5d907a14b3",
+  "source_tree_sha256": "a5673092277d56b5d56de23eda795ea922722285002af67a61756bffef4f6808"
 }
