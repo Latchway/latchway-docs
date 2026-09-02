@@ -271,7 +271,7 @@
     "reference/sdk-bundles/ios.mdx": "426fa1020bebe2d24e62a469dd2ec8167c79af4317d7c8a0f2500bbca6a34ed9",
     "reference/sdk-bundles/js.mdx": "a14ecc3e0fc2136b15212941a4f163542646e6bda59a2e90f337395fe20f8de3",
     "reference/sdk-bundles/react-native.mdx": "fa7101b3eb39946ec16c880465397aed832a6d2b9e9951df8fc4d8772c4245fe",
-    "release-status.mdx": "cd862c21de5e73d237029b77a2b5da9edbece3410cbe7588b37eb164eada58a2",
+    "release-status.mdx": "284b7dfcaa8aa23b3bac0766b3c260d354a2734e2b1cb50a67ea26a980f35f32",
     "scripts/check-generated.py": "be665256594dc3974739d8ab239e700244a045b2e41aff666323ae57b8029773",
     "scripts/check-sdk-bundles.py": "4250337b52928988c84353ba6da6f342789eee64cdc454497f6ff31da8fceb02",
     "scripts/check-structure.py": "9f409398aa017da53f8a28d038f358dd344bb0bf6d0a0d7540d1740e1af2a1a2",
@@ -332,6 +332,6 @@
   },
   "format": 1,
   "source": "latchway/docs/public",
-  "source_commit": "9f277898ea521d29aba182643912d8941d27edda",
-  "source_tree_sha256": "72646b00a708ed9046ed11e39956ae57c0d19d52d0c3ea4c520f75139804e32b"
+  "source_commit": "3c366bc3ef3ec713720369a5ceef0c54ee11f4c5",
+  "source_tree_sha256": "d62ea88e7a1022dc0b2228ebf4bfa4cd11aa02099ae45ec6c1ae27ae3fc5b03f"
 }
