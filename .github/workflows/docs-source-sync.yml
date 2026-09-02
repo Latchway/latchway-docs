@@ -22,15 +22,49 @@ jobs:
       - name: Check out deployment mirror
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          path: deployment-docs
           persist-credentials: false
 
       - name: Verify every manifest-owned file
+        working-directory: deployment-docs
         run: python3 scripts/check-source-manifest.py
 
       - name: Test source-checkpoint verifier
+        working-directory: deployment-docs
         run: python3 -m unittest scripts/test_check_source_manifest.py
 
       - name: Test Mintlify production-evidence verifier
+        working-directory: deployment-docs
         run: >-
           python3 -m unittest
           scripts/test_mintlify_production_evidence.py
+
+      - name: Test Mintlify agent-readiness score verifier
+        working-directory: deployment-docs
+        run: >-
+          python3 -m unittest
+          scripts/test_verify_mintlify_score.py
+
+      - name: Resolve the claimed canonical core commit
+        id: source
+        working-directory: deployment-docs
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_commit=$(python3 scripts/check-source-manifest.py --print-source-commit)
+          [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]]
+          echo "commit=$source_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the exact canonical core commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: Latchway/latchway
+          ref: ${{ steps.source.outputs.commit }}
+          path: canonical-core
+          persist-credentials: false
+
+      - name: Prove the mirror bytes exist at the claimed core commit
+        working-directory: deployment-docs
+        run: >-
+          python3 scripts/check-source-manifest.py
+          --canonical-root ../canonical-core/docs/public

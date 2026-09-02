@@ -23,9 +23,15 @@ EXPECTED_TOP_LEVEL_KEYS = {
     "source_tree_sha256",
 }
 FORBIDDEN_PARTS = {".git", "__pycache__", "node_modules"}
+IGNORED_NAMES = {".DS_Store", MANIFEST_NAME}
+ASSISTANT_PATH = ".mintlify/Assistant.md"
+SKILLS_PREFIX = ".mintlify/skills/"
 MIRROR_OWNED_FILES = {
+    ".github/CODEOWNERS",
     ".github/MINTLIFY_PRODUCTION_EVIDENCE.md",
+    ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/workflows/docs-checks.yml",
+    ".github/workflows/docs-pr-policy.yml",
     ".github/workflows/docs-source-sync.yml",
     ".github/workflows/mintlify-production-evidence.yml",
     "schemas/mintlify-production-evidence.schema.json",
@@ -33,6 +39,8 @@ MIRROR_OWNED_FILES = {
     "scripts/mintlify-production-evidence.py",
     "scripts/test_check_source_manifest.py",
     "scripts/test_mintlify_production_evidence.py",
+    "scripts/test_verify_mintlify_score.py",
+    "scripts/verify-mintlify-score.py",
 }
 
 
@@ -124,12 +132,71 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def verify(repository_root: Path, manifest_path: Path) -> int:
+def file_table_sha256(files: dict[str, str]) -> str:
+    encoded = (
+        json.dumps(files, sort_keys=True, separators=(",", ":")) + "\n"
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def canonical_source_files(root: Path) -> dict[str, Path]:
+    files: dict[str, Path] = {}
+    for path in sorted(root.rglob("*")):
+        relative = path.relative_to(root)
+        if any(part in FORBIDDEN_PARTS for part in relative.parts):
+            continue
+        relative_text = relative.as_posix()
+        if ".mintlify" in relative.parts:
+            if not (
+                relative_text == ASSISTANT_PATH
+                or relative_text.startswith(SKILLS_PREFIX)
+            ):
+                continue
+        if path.name in IGNORED_NAMES or path.suffix in {".pyc", ".pyo"}:
+            continue
+        if path.is_symlink():
+            raise ManifestError(f"canonical source contains a symlink: {relative_text}")
+        if path.is_file():
+            files[relative_text] = path
+    return files
+
+
+def verify_canonical_source(
+    canonical_root: Path, manifest: dict[str, Any]
+) -> list[str]:
+    root = canonical_root.resolve(strict=True)
+    expected: dict[str, str] = manifest["files"]
+    actual = canonical_source_files(root)
+    problems: list[str] = []
+
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    for relative in missing:
+        problems.append(f"canonical source file is missing: {relative}")
+    for relative in unexpected:
+        problems.append(f"canonical source file is outside the checkpoint: {relative}")
+    for relative in sorted(set(expected) & set(actual)):
+        try:
+            actual_digest = sha256(actual[relative])
+        except OSError as error:
+            problems.append(f"cannot hash canonical source {relative}: {error}")
+            continue
+        if actual_digest != expected[relative]:
+            problems.append(f"canonical source differs from checkpoint: {relative}")
+    return problems
+
+
+def verify(
+    repository_root: Path,
+    manifest_path: Path,
+    canonical_root: Path | None = None,
+) -> int:
     root = repository_root.resolve(strict=True)
     manifest = read_manifest(manifest_path)
     owned: dict[str, str] = manifest["files"]
     problems: list[str] = []
     canonical_paths: set[str] = set()
+    validated_files: dict[str, str] = {}
 
     for relative, digest_value in sorted(owned.items()):
         try:
@@ -138,6 +205,7 @@ def verify(repository_root: Path, manifest_path: Path) -> int:
         except ManifestError as error:
             problems.append(str(error))
             continue
+        validated_files[posix_path.as_posix()] = expected_digest
 
         folded = posix_path.as_posix().casefold()
         if posix_path.as_posix() in MIRROR_OWNED_FILES:
@@ -205,11 +273,35 @@ def verify(repository_root: Path, manifest_path: Path) -> int:
             continue
         problems.append(f"repository file is outside the source checkpoint: {relative}")
 
+    if len(validated_files) == len(owned):
+        computed_tree = file_table_sha256(validated_files)
+        if computed_tree != manifest["source_tree_sha256"]:
+            problems.append("source_tree_sha256 is not reproducible from files")
+
+    if canonical_root is not None:
+        try:
+            canonical = canonical_root.resolve(strict=True)
+            canonical.relative_to(root)
+        except ValueError:
+            pass
+        except OSError as error:
+            problems.append(f"cannot resolve canonical source root: {error}")
+        else:
+            problems.append("canonical source root must be outside the mirror root")
+        if not problems:
+            try:
+                problems.extend(verify_canonical_source(canonical_root, manifest))
+            except (ManifestError, OSError) as error:
+                problems.append(str(error))
+
     if problems:
         for problem in problems:
             print(f"error: {problem}", file=sys.stderr)
         return 1
-    print(f"source manifest integrity passed: {len(owned)} owned files")
+    suffix = " and exact canonical source" if canonical_root is not None else ""
+    print(
+        f"source manifest integrity passed: {len(owned)} owned files{suffix}"
+    )
     return 0
 
 
@@ -218,11 +310,20 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=default_root)
     parser.add_argument("--manifest", type=Path)
+    parser.add_argument("--canonical-root", type=Path)
+    parser.add_argument("--print-source-commit", action="store_true")
     arguments = parser.parse_args()
     root = arguments.root
     manifest_path = arguments.manifest or root / MANIFEST_NAME
     try:
-        return verify(root, manifest_path)
+        if arguments.print_source_commit:
+            if arguments.canonical_root is not None:
+                raise ManifestError(
+                    "--print-source-commit cannot be combined with --canonical-root"
+                )
+            print(read_manifest(manifest_path)["source_commit"])
+            return 0
+        return verify(root, manifest_path, arguments.canonical_root)
     except (ManifestError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1

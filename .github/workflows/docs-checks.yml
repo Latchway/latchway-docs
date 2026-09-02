@@ -35,6 +35,11 @@ jobs:
           python3 -m unittest
           scripts/test_mintlify_production_evidence.py
 
+      - name: Test Mintlify agent-readiness score verifier
+        run: >-
+          python3 -m unittest
+          scripts/test_verify_mintlify_score.py
+
       - name: Install pnpm
         uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
         with:
@@ -63,13 +68,16 @@ jobs:
           version: 3.17.0
           workdir: .
 
+      - name: Validate deterministic visual baseline
+        run: pnpm check:visuals
+
       - name: Validate site
         env:
           DO_NOT_TRACK: "1"
         # Vale already ran in the pinned action above. The action intentionally
         # does not install a `vale` executable into later steps, so repeat only
         # the remaining self-contained documentation gates here.
-        run: pnpm check:structure && pnpm validate && pnpm check:links && pnpm check:a11y
+        run: pnpm check:structure && pnpm check:policy && pnpm validate && pnpm check:links && pnpm check:a11y
 
       - name: Check external links on the weekly schedule
         if: github.event_name == 'schedule'

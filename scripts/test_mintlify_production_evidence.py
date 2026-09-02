@@ -374,11 +374,19 @@ class MintlifyProductionEvidenceTests(unittest.TestCase):
             "github.event.deployment.environment == 'production'",
             "github.event.deployment_status.state == 'success'",
             "environment: documentation-production-evidence",
+            "MINTLIFY_SESSION_TOKEN: ${{ secrets.MINTLIFY_SESSION_TOKEN }}",
             "deployments: read",
             "attestations: write",
             "id-token: write",
             "scripts/mintlify-production-evidence.py observe",
             "scripts/mintlify-production-evidence.py verify",
+            "repository: Latchway/latchway",
+            "ref: ${{ steps.source.outputs.commit }}",
+            "path: canonical-core",
+            "--canonical-root ../canonical-core/docs/public",
+            '--repository-root "$GITHUB_WORKSPACE/deployment-docs"',
+            "pnpm exec mint score https://docs.latchway.dev --format json",
+            "scripts/verify-mintlify-score.py --score",
             "actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d",
             "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
             "persist-credentials: false",
@@ -393,7 +401,10 @@ class MintlifyProductionEvidenceTests(unittest.TestCase):
         ):
             self.assertIn(fragment, workflow)
         self.assertNotIn("pull_request_target", workflow)
-        self.assertNotIn("secrets.", workflow)
+        self.assertEqual(workflow.count("secrets.MINTLIFY_SESSION_TOKEN"), 1)
+        self.assertIsNone(
+            re.search(r"secrets\.(?!MINTLIFY_SESSION_TOKEN\b)", workflow)
+        )
         mutable_action = re.compile(r"uses:\s+[^\s@]+@(?![0-9a-f]{40}(?:\s|$))")
         self.assertIsNone(mutable_action.search(workflow))
 

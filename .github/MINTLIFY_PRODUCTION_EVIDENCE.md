@@ -10,11 +10,30 @@ following external controls must exist:
   `production_environment: true`, and `transient_environment: false`.
 - The GitHub environment `documentation-production-evidence` is protected with
   required reviewers and a `main`-only deployment branch rule.
+- That protected environment contains a current `MINTLIFY_SESSION_TOKEN` secret
+  for the Mintlify account authorized to run the CLI agent-readiness score. The
+  token must never be stored in the repository or exposed to pull-request jobs.
 
 Staging and transient Mintlify deployment events are intentionally ignored. A
 maintainer can replay a fresh production deployment with the workflow's manual
 `deployment_id` input; the same deployment, actor, commit, status, URL, and
 freshness checks apply.
+
+After checking out the exact deployed commit, the protected job installs the
+pinned CLI and runs `mint score https://docs.latchway.dev --format json`. The
+reviewed verifier requires the score to describe the canonical hostname, have a
+completed response shape, and contain no `fail` or `error` check at any nesting
+level. Warnings and inapplicable skips remain visible without inventing a score
+threshold that Mintlify does not define. Missing authentication, an unavailable
+hostname, malformed output, or a failed check prevents production evidence from
+being sealed. Ordinary pull-request checks remain credential-free.
+
+Before scoring or observing the site, the job reads the strictly validated
+`source_commit`, checks out public `Latchway/latchway` at that exact revision,
+and byte-compares every manifest-owned file plus the complete publishable tree.
+The ordinary required source-checkpoint workflow performs the same independent
+comparison. A self-consistent mirror manifest therefore cannot substitute bytes
+that were never committed to the canonical core source.
 
 ## Retained artifact contract
 

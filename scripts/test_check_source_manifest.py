@@ -14,12 +14,12 @@ SCRIPT = Path(__file__).with_name("check-source-manifest.py")
 
 class SourceManifestCheckTests(unittest.TestCase):
     SOURCE_COMMIT = "0123456789abcdef0123456789abcdef01234567"
-    SOURCE_TREE_SHA256 = (
-        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-    )
     MIRROR_OWNED_FILES = (
+        ".github/CODEOWNERS",
         ".github/MINTLIFY_PRODUCTION_EVIDENCE.md",
+        ".github/PULL_REQUEST_TEMPLATE.md",
         ".github/workflows/docs-checks.yml",
+        ".github/workflows/docs-pr-policy.yml",
         ".github/workflows/docs-source-sync.yml",
         ".github/workflows/mintlify-production-evidence.yml",
         "schemas/mintlify-production-evidence.schema.json",
@@ -27,6 +27,8 @@ class SourceManifestCheckTests(unittest.TestCase):
         "scripts/mintlify-production-evidence.py",
         "scripts/test_check_source_manifest.py",
         "scripts/test_mintlify_production_evidence.py",
+        "scripts/test_verify_mintlify_score.py",
+        "scripts/verify-mintlify-score.py",
     )
 
     def setUp(self) -> None:
@@ -44,6 +46,13 @@ class SourceManifestCheckTests(unittest.TestCase):
     def digest(value: bytes) -> str:
         return hashlib.sha256(value).hexdigest()
 
+    @staticmethod
+    def tree_digest(files: dict[str, str]) -> str:
+        payload = (
+            json.dumps(files, sort_keys=True, separators=(",", ":")) + "\n"
+        ).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
+
     def write_file(self, relative: str, value: bytes) -> Path:
         path = self.root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -56,16 +65,22 @@ class SourceManifestCheckTests(unittest.TestCase):
             "format": 1,
             "source": "latchway/docs/public",
             "source_commit": self.SOURCE_COMMIT,
-            "source_tree_sha256": self.SOURCE_TREE_SHA256,
+            "source_tree_sha256": self.tree_digest(files),
         }
         payload.update(overrides)
         (self.root / ".latchway-docs-source.json").write_text(
             json.dumps(payload), encoding="utf-8"
         )
 
-    def run_check(self) -> subprocess.CompletedProcess[str]:
+    def run_check(
+        self, canonical_root: Path | None = None, *extra: str
+    ) -> subprocess.CompletedProcess[str]:
+        arguments = [sys.executable, str(SCRIPT), "--root", str(self.root)]
+        if canonical_root is not None:
+            arguments.extend(["--canonical-root", str(canonical_root)])
+        arguments.extend(extra)
         return subprocess.run(
-            [sys.executable, str(SCRIPT), "--root", str(self.root)],
+            arguments,
             check=False,
             capture_output=True,
             text=True,
@@ -81,6 +96,38 @@ class SourceManifestCheckTests(unittest.TestCase):
         result = self.run_check()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("1 owned files", result.stdout)
+
+    def test_accepts_exact_canonical_source_and_prints_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            canonical = Path(temporary)
+            (canonical / "index.mdx").write_bytes(b"# Latchway\n")
+            result = self.run_check(canonical)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("exact canonical source", result.stdout)
+
+        result = self.run_check(None, "--print-source-commit")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), self.SOURCE_COMMIT)
+
+    def test_rejects_canonical_source_drift_or_omission(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            canonical = Path(temporary)
+            (canonical / "index.mdx").write_bytes(b"different\n")
+            result = self.run_check(canonical)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("canonical source differs from checkpoint", result.stderr)
+
+            (canonical / "extra.mdx").write_bytes(b"# Extra\n")
+            result = self.run_check(canonical)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("canonical source file is outside the checkpoint", result.stderr)
+
+    def test_rejects_nonreproducible_source_tree_digest(self) -> None:
+        self.write_manifest(
+            {"index.mdx": self.digest(b"# Latchway\n")},
+            source_tree_sha256="0" * 64,
+        )
+        self.assert_rejected("source_tree_sha256 is not reproducible from files")
 
     def test_rejects_unmanifested_publishable_file(self) -> None:
         self.write_file("unreviewed.mdx", b"# Unreviewed\n")
@@ -228,6 +275,21 @@ class SourceManifestCheckTests(unittest.TestCase):
         manifest.rename(target)
         manifest.symlink_to(target.name)
         self.assert_rejected("manifest is not a regular file")
+
+    def test_required_workflow_compares_the_claimed_public_core_commit(self) -> None:
+        workflow = (
+            SCRIPT.parents[1] / ".github/workflows/docs-source-sync.yml"
+        ).read_text(encoding="utf-8")
+        for fragment in (
+            "repository: Latchway/latchway",
+            "ref: ${{ steps.source.outputs.commit }}",
+            "path: canonical-core",
+            "python3 scripts/check-source-manifest.py --print-source-commit",
+            "--canonical-root ../canonical-core/docs/public",
+            "persist-credentials: false",
+        ):
+            self.assertIn(fragment, workflow)
+        self.assertNotIn("pull_request_target", workflow)
 
 
 if __name__ == "__main__":

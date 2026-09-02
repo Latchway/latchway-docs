@@ -81,9 +81,11 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ steps.deployment.outputs.documentation_commit }}
+          path: deployment-docs
           persist-credentials: false
 
       - name: Revalidate the source and production-proof implementation
+        working-directory: deployment-docs
         shell: bash
         env:
           DOCUMENTATION_COMMIT: ${{ steps.deployment.outputs.documentation_commit }}
@@ -93,10 +95,67 @@ jobs:
           python3 scripts/check-source-manifest.py
           python3 -m unittest scripts/test_check_source_manifest.py
           python3 -m unittest scripts/test_mintlify_production_evidence.py
+          python3 -m unittest scripts/test_verify_mintlify_score.py
           python3 -m py_compile scripts/mintlify-production-evidence.py
+          python3 -m py_compile scripts/verify-mintlify-score.py
           python3 -m json.tool schemas/mintlify-production-evidence.schema.json >/dev/null
 
+      - name: Resolve the claimed canonical core commit
+        id: source
+        working-directory: deployment-docs
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          source_commit=$(python3 scripts/check-source-manifest.py --print-source-commit)
+          [[ "$source_commit" =~ ^[0-9a-f]{40}$ ]]
+          echo "commit=$source_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the exact canonical core commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: Latchway/latchway
+          ref: ${{ steps.source.outputs.commit }}
+          path: canonical-core
+          persist-credentials: false
+
+      - name: Prove the deployed bytes exist at the claimed core commit
+        working-directory: deployment-docs
+        run: >-
+          python3 scripts/check-source-manifest.py
+          --canonical-root ../canonical-core/docs/public
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+        with:
+          version: 10.15.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+          cache-dependency-path: deployment-docs/pnpm-lock.yaml
+
+      - name: Install pinned documentation dependencies
+        working-directory: deployment-docs
+        run: pnpm install --frozen-lockfile
+
+      - name: Enforce authenticated Mintlify agent readiness
+        working-directory: deployment-docs
+        shell: bash
+        env:
+          DO_NOT_TRACK: "1"
+          MINTLIFY_SESSION_TOKEN: ${{ secrets.MINTLIFY_SESSION_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+          test -n "$MINTLIFY_SESSION_TOKEN"
+          score="$RUNNER_TEMP/mintlify-agent-readiness-score.json"
+          pnpm exec mint score https://docs.latchway.dev --format json > "$score"
+          python3 scripts/verify-mintlify-score.py --score "$score"
+
       - name: Observe the live production site
+        working-directory: deployment-docs
         shell: bash
         env:
           DEPLOYMENT_ID: ${{ steps.deployment.outputs.deployment_id }}
@@ -106,7 +165,7 @@ jobs:
           evidence="$RUNNER_TEMP/mintlify-production-evidence"
           mkdir -m 0700 "$evidence"
           python3 scripts/mintlify-production-evidence.py observe \
-            --repository-root "$GITHUB_WORKSPACE" \
+            --repository-root "$GITHUB_WORKSPACE/deployment-docs" \
             --deployment-json "$RUNNER_TEMP/mintlify-deployment.json" \
             --statuses-json "$RUNNER_TEMP/mintlify-deployment-statuses.json" \
             --deployment-id "$DEPLOYMENT_ID" \
