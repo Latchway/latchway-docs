@@ -366,6 +366,16 @@ class MintlifyProductionEvidenceTests(unittest.TestCase):
         workflow = (
             repository / ".github/workflows/mintlify-production-evidence.yml"
         ).read_text(encoding="utf-8")
+        sentinel = workflow.index(
+            "      - name: Verify the exact protected "
+            "documentation-production-evidence environment"
+        )
+        first_remote_authority = workflow.index(
+            "      - name: Resolve the immutable GitHub deployment authority"
+        )
+        first_step = workflow.index("    steps:\n") + len("    steps:\n")
+        self.assertEqual(workflow.find("      - name:", first_step), sentinel)
+        self.assertLess(sentinel, first_remote_authority)
         for fragment in (
             "deployment_status:",
             "workflow_dispatch:",
@@ -374,6 +384,10 @@ class MintlifyProductionEvidenceTests(unittest.TestCase):
             "github.event.deployment.environment == 'production'",
             "github.event.deployment_status.state == 'success'",
             "environment: documentation-production-evidence",
+            "OBSERVED_POLICY_ID: ${{ vars.LATCHWAY_RELEASE_CONTROL_POLICY_ID }}",
+            'test "$OBSERVED_POLICY_ID" = '
+            '"latchway-release-controls-v1:latchway-docs:'
+            'documentation-production-evidence"',
             "MINTLIFY_SESSION_TOKEN: ${{ secrets.MINTLIFY_SESSION_TOKEN }}",
             "deployments: read",
             "attestations: write",

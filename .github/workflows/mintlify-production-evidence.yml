@@ -36,6 +36,14 @@ jobs:
       deployments: read
       id-token: write
     steps:
+      - name: Verify the exact protected documentation-production-evidence environment
+        shell: bash
+        env:
+          OBSERVED_POLICY_ID: ${{ vars.LATCHWAY_RELEASE_CONTROL_POLICY_ID }}
+        run: |
+          set -Eeuo pipefail
+          test "$OBSERVED_POLICY_ID" = "latchway-release-controls-v1:latchway-docs:documentation-production-evidence"
+
       - name: Resolve the immutable GitHub deployment authority
         id: deployment
         shell: bash
