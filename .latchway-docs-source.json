@@ -260,7 +260,7 @@
     "operations/scaling.mdx": "5ab35b8173bf576794f41da0e9357277428aca873faff26da81ed3c18da81270",
     "operations/self-tests.mdx": "6718b4a17945df131eefd64ecd08bc6a97cdac90e88064adb4580a48820842b7",
     "operations/telemetry-and-jobs.mdx": "a0ca749a96ac351b604cf36aeaf49f8838d92068702593c9eae9210908f323d2",
-    "operations/upgrades.mdx": "2053f1d8390a0e5effbc2a385bb445035ef209595846723bb6bce8c94c947c54",
+    "operations/upgrades.mdx": "7148fb6ea30533f58d06a3c29db6052d4f95619339a00083aeb40a9719b0ffdd",
     "operations/verify-release-image.mdx": "4f431f46d5fd3352d3dbc13df43238eb789764833d88c78c876ac3275cd4318f",
     "package.json": "a1c4a2db839bee56ac7647f91860b688de8a13317faa2d8cddc2d6371463d70b",
     "pnpm-lock.yaml": "68b8abc32a58f2b1c51731570e60059190a260cc3b9f9348940be58eecde08b2",
@@ -346,6 +346,6 @@
   },
   "format": 1,
   "source": "latchway/docs/public",
-  "source_commit": "ac882c7f5c8c2185f8628b625d86a441dff0f98d",
-  "source_tree_sha256": "95763a9aa3c8f65e296e4776244e66d8067a977592632f38a6d71b424fe68a47"
+  "source_commit": "2d6d4636a8f0ed941b61d5f0308798d35faa49c3",
+  "source_tree_sha256": "21f2f24d7d943a44edb1cb63ca587403162cbd3be7cdbf08a6645bf38b3aa9b8"
 }
