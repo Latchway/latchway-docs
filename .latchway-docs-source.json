@@ -114,12 +114,12 @@
     "concepts/identity-and-attestation.mdx": "9985506f3eaae087ac3313aaa5943beb85e95b2f09a664c3a90c6f348652d7e9",
     "concepts/installation-families.mdx": "d6d3639af8f99ff059984951546ac3b2ba6d4dd4df36f205be9bd75c5fcc6071",
     "concepts/providers-and-protocols.mdx": "efaa250e66b6aabecd37e934b3dba16631bb70d08ca04471d3bad8ba7f4bb623",
-    "concepts/routing-and-quotas.mdx": "c3b839afd7027b427b7c4e68fbeca6319b59c5e636786dbdc21c9b15da2935cb",
+    "concepts/routing-and-quotas.mdx": "0d04cd4ba160394fa89b4b6471ca425e001e277f289740c66deb3bbd2a846357",
     "concepts/security-and-privacy.mdx": "b708e6b6abdf84d877e43b5114d0a916a4b7a913360bd5d97ba62e805706c261",
     "concepts/security-boundary.mdx": "6837d756f2d584ba28c87bdcb83db10b4a58974c6c9f292277a65b3fa76c4791",
     "concepts/trust-provenance.mdx": "d27284e55bce2edbe77a01c46f1aa1767c1e9cdde80015202aafbc51d63b4da6",
     "config/generated-page-metadata.json": "ac546833bd4571515c34cf050c8ea22201df6187c7d6325f3ab8089cd9b22be3",
-    "config/generated-reference.json": "f2dd077e52d5630b81f3966f9dd93b862321f1805dfc5394b02a42ee2f089890",
+    "config/generated-reference.json": "e16eaa15adc359957cb13737f7322ad11dd0cdac26c5e6ff8889ce32a84d5233",
     "config/generated-sdk-bundles.json": "b6c4297d1b084bd71f909957817cc343f5efff97ffbe05e74e8b20841b39eebe",
     "config/navigation.json": "e41b5d93e0fc9bf9adee2e894b0868fad987ebbbcc0b3582b9e7f47dc3b1f44d",
     "config/redirects.json": "d0e0fdc1de0dae8f5610eecef2e6a0560b6c2760ca9f1a69ac7dc601c583aed3",
@@ -275,7 +275,7 @@
     "package.json": "a1c4a2db839bee56ac7647f91860b688de8a13317faa2d8cddc2d6371463d70b",
     "pnpm-lock.yaml": "68b8abc32a58f2b1c51731570e60059190a260cc3b9f9348940be58eecde08b2",
     "quickstart.mdx": "8a33619ea52504dd7726be1d41bf82994e3db149e0112752a3e0b472af231bbb",
-    "reference/admin-api.mdx": "b2770a0c9c78b73622e9fb8a5e9c95731aca18d639c1762686eb568d22bc86cd",
+    "reference/admin-api.mdx": "b3d483b41f4035c658bf417293050c94f6d13319852db98f85b11eea68912edd",
     "reference/audit-event-types.mdx": "ee89f425cd46b4db4f44613cc19b02c37ac2b4844d705166bedcfa4b00a15bb9",
     "reference/cel-policy-context.mdx": "72192982751c3cb54da8d943f6a7004ea5e8e669726526f76027f2d23853c5ac",
     "reference/cli.mdx": "2857404bbaf13cc9e3cdfba4fc931a4741de2b6cd5c2070d713e5da893d04574",
@@ -372,6 +372,6 @@
   },
   "format": 1,
   "source": "latchway/docs/public",
-  "source_commit": "f41b79edeb1f898df170d220396d6e1b5664b1a7",
-  "source_tree_sha256": "2d56d5502312316338c39215b84060a930c5f9ef9a152257f32f5d7de8af6c69"
+  "source_commit": "21d8c9055dcfb32da4a09df249c9109a93d72507",
+  "source_tree_sha256": "638ddfc5e9d07119812637d8cc16aa891d5c6a54cfd34865d9e5d65fa7e673e5"
 }
