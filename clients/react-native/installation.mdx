@@ -4,13 +4,13 @@ description: "Install the minimal React Native package and compatible native SDK
 icon: "package"
 audience: "client-react-native"
 pageType: "how-to"
-serverVersion: "1.1.1"
-sdkVersion: "1.2.0"
-lastVerified: "2026-09-08"
+serverVersion: "1.1.3"
+sdkVersion: "2.0.0"
+lastVerified: "2026-09-10"
 owner: "react-native-sdk"
 ---
 
-<Badge color="blue">SDK 1.2.0</Badge> <Badge color="purple">Native dependencies</Badge>
+<Badge color="blue">SDK 2.0.0</Badge> <Badge color="purple">Native dependencies</Badge>
 
 ## Outcome
 
@@ -37,16 +37,26 @@ dependencies may require a newer compile or target SDK.
 ## Install in an application
 
 ```bash
-npm install --save-exact @latchway/react-native@1.2.0
+npm install --save-exact @latchway/react-native@2.0.0
 cd ios
 bundle exec pod install
 cd ..
 ```
 
 Use `pod install` if the host does not use Bundler. The npm podspec resolves
-`Latchway/AppAttest` 1.2.0; Gradle resolves the locked `dev.latchway` 1.1.0
+`Latchway/AppAttest` 2.0.0; Gradle resolves the locked `dev.latchway` 1.2.1
 artifacts from Maven Central. Do not add local SDK paths or a second native
 implementation. Rebuild the native app after installation; a JS reload is not enough.
+
+When upgrading an existing host, `Podfile.lock` may still pin the older native
+SDK. After updating npm, run `bundle exec pod update Latchway --repo-update`
+from `ios` (or `pod update Latchway --repo-update` without Bundler). This unlocks
+the Latchway pod specifically; ordinary `pod install` preserves the old lock and
+can reject the new exact dependency. Do not update every unrelated pod.
+
+Version 2 removes legacy migration, credential-adoption and callback-authority
+APIs. It does not migrate old storage automatically. Do not ship this bridge
+upgrade as an OTA-only JavaScript update.
 
 The base SDK requires only `@latchway/client` 1.1.0 and a private stream fallback.
 It does not install LangChain or initialize global runtime polyfills. For that
