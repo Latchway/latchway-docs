@@ -259,7 +259,7 @@
     "operations/choose-deployment.mdx": "36427f7ff8aa370c1e939de3d1ae23ccc845dac72075a9eece9bbe6817fb05a6",
     "operations/deploy-aws-ecs.mdx": "31862f2cc54c94cfa84442139c4fb7ff1cf20fd5093bbf659d6add86168da44f",
     "operations/deploy-cloudflare-containers.mdx": "632728034b854c54848ea5e70df6799e9cd4cf8250f39ad874f8df6076fec461",
-    "operations/deploy-docker-compose.mdx": "1ad8db3cca445ef1b051855ac19cb6bd7444c99b22967660623be566737c0a24",
+    "operations/deploy-docker-compose.mdx": "661544eaf215279248513db7dc890b5d3cd227a725ab093c1d24809ff4070bc1",
     "operations/deploy-fly-io.mdx": "d8c32cabf34832c1300e2247f0ff9142b1b854f6ef58c7396a7c9fc33283362f",
     "operations/deploy-google-cloud-run.mdx": "417057a9d0233b64e81f6206aa2fe10f4785a371bfaefd96c91347c9dd2226d3",
     "operations/deployment.mdx": "9a2961089d4f1b0a55394b0b49741451ba51363bdc40004bee12e1829b84d502",
@@ -269,7 +269,7 @@
     "operations/rollbacks.mdx": "d721b925bbfc258ef58cdd11d340f282a5b95e2ff39e7b7f11d91d9d85abf2da",
     "operations/scaling.mdx": "210d7a06d69a00873957ce1b29958780afc5ff3066c0f73679d4f072be435efb",
     "operations/self-tests.mdx": "6718b4a17945df131eefd64ecd08bc6a97cdac90e88064adb4580a48820842b7",
-    "operations/telemetry-and-jobs.mdx": "9b27726af3bc8e5d1695e3e7580b4e559d6653ad84c1d8f39e319a41a47d0250",
+    "operations/telemetry-and-jobs.mdx": "427e490fa17f98261ccb179caa5c7f3ae1bf91ba8b8ca7484530f3804db1d8d7",
     "operations/upgrades.mdx": "b83a8ab40832e6c401a7f1eed2eaebe3270a0a823b25ba4a30565f8a83be3636",
     "operations/verify-release-image.mdx": "4f431f46d5fd3352d3dbc13df43238eb789764833d88c78c876ac3275cd4318f",
     "package.json": "a1c4a2db839bee56ac7647f91860b688de8a13317faa2d8cddc2d6371463d70b",
@@ -291,7 +291,7 @@
     "reference/sdk-bundles/ios.mdx": "d26c9208be99b432136db67b9b3f43e0d14141d6f405f3287445395e9cd1106a",
     "reference/sdk-bundles/js.mdx": "0ac6e372526b8556239cbee9ec1aa2d6a69919f36465e5c4f69e447ec34ba76b",
     "reference/sdk-bundles/react-native.mdx": "c74c22e897a40a66193bb0ec33497315c3db621e17867dcf81509efb209e096f",
-    "release-status.mdx": "1f5a46d74e221fea2ed265391e6d29f3371036d6b9e23b725f54ddc12527a3c4",
+    "release-status.mdx": "f61894022c4ec6565fb82fa21b56eabc8180fe56c3a859bd2a0825d072c1c17d",
     "scripts/check-docs-pr-policy.py": "2c96e1eb6815d5090a9056c5f8d854d02a079c5a47c9e077275e3da5f4b5b050",
     "scripts/check-generated.py": "be665256594dc3974739d8ab239e700244a045b2e41aff666323ae57b8029773",
     "scripts/check-sdk-bundles.py": "db0e010a653bbde6d73c3904fac6fdf2277f3ec8e9cc19a131bc086cf5a770de",
@@ -384,6 +384,6 @@
   },
   "format": 1,
   "source": "latchway/docs/public",
-  "source_commit": "ac2f8f20b9f57db6abfaf4f405bff2b8b3640ffb",
-  "source_tree_sha256": "12b8e07210f5bc106ad3f5f740109616c0bc4398db3fc294633bc7d0f228415c"
+  "source_commit": "8c71c9809b75c03e52e8b17a4d7aad9fb26d415c",
+  "source_tree_sha256": "41e3f251ab2b66c447f6b9d0699b0c287a4ebed01174272a0b3187e778230e7e"
 }
